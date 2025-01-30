@@ -5,26 +5,33 @@ from mpm_fft import fft, next_power_of_two, sequence_shift
 from nlft import Polynomial, abs2
 
 
+# Returns a Laurent polynomial passing through the given points.
+# points is a list of values, where the k-th is the function computed on omega_N^k, where N = len(points)
+def laurent_approximation(points) -> Polynomial:
+    N = len(points)
+
+    coeffs = fft(points, normalize=True)
+    coeffs = sequence_shift(coeffs, -N//2) # Zero frequency in the middle
+
+    return Polynomial(coeffs, support_start=-N//2)
+
+
+
 # mode='completion' | 'ratio'
 def weiss_internal(b: Polynomial, mode='completion', verbose=False):
 
-    N = next_power_of_two(b.effective_degree()) # Exponential search on N
+    N = 8*next_power_of_two(b.effective_degree()) # Exponential search on N
     threshold = 1
 
     while threshold > 10 ** (-mp.mp.dps+1):
         b_points = b.eval_at_roots_of_unity(N)
 
-        R_coeffs = fft([mp.log(1 - abs2(bz))/2 for bz in b_points], normalize=True)
-        R_coeffs = sequence_shift(R_coeffs, -N//2) # Zero frequency in the middle
-        R = Polynomial(R_coeffs, support_start=-N//2)
+        R = laurent_approximation([mp.log(1 - abs2(bz))/2 for bz in b_points])
 
         G = R.schwarz_transform()
         G_points = G.eval_at_roots_of_unity(N)
 
-        a_coeffs = fft([mp.exp(gz) for gz in G_points], normalize=True)
-        a_coeffs = sequence_shift(a_coeffs, -N//2) # Zero frequency in the middle
-        a = Polynomial(a_coeffs, support_start=-N//2)
-
+        a = laurent_approximation([mp.exp(gz) for gz in G_points])
         a = a.truncate(-b.effective_degree(), 1) # a and b must have the same support
 
         threshold = (a * a.conjugate() + b * b.conjugate() - 1).l2_norm()
@@ -35,9 +42,7 @@ def weiss_internal(b: Polynomial, mode='completion', verbose=False):
         N *= 2
 
     if mode == 'ratio':
-        c_coeffs = fft([bz * mp.exp(-gz) for bz, gz in zip(b_points, G_points)], normalize=True)
-        c_coeffs = sequence_shift(c_coeffs, -N//2) # Zero frequency in the middle
-        return Polynomial(a_coeffs, support_start=-N//2)
+        return laurent_approximation([bz * mp.exp(-gz) for bz, gz in zip(b_points, G_points)])
     else:
         return a
 

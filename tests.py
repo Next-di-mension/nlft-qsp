@@ -28,7 +28,7 @@ class RHWTestCase(unittest.TestCase):
 
 
     @mp.workdps(10)
-    def test_completion(self):
+    def test_weiss_completion(self):
         for n in range(4, 7):
             N = 1 << n
 
