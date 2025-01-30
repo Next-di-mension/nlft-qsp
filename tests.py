@@ -31,7 +31,6 @@ class RHWTestCase(unittest.TestCase):
     def test_completion(self):
         for n in range(4, 7):
             N = 1 << n
-            print('N = ', N)
 
             for _ in range(10):
                 nlft = NonLinearFourierSequence(random_sequence(1, N))
@@ -39,7 +38,7 @@ class RHWTestCase(unittest.TestCase):
                 
                 a, b = nlft.transform()
 
-                a2 = weiss.complete(b, verbose=True)
+                a2 = weiss.complete(b)
 
                 self.assertAlmostEqual((a * a.conjugate() - a2 * a2.conjugate()).l2_norm(), 0, delta=10**(-mp.mp.dps+1))
 
