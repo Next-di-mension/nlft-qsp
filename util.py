@@ -2,6 +2,13 @@
 
 import mpmath as mp
 
+# Plots the given function(s) on the unit circle.
+# More explicitly, given f(z), f(e^ix) will be plotted with respect to x.
+def plot_on_circle(l):
+    if not isinstance(l, list):
+        l = [l]
+
+    mp.plot([lambda x, f=f: f(mp.exp(1j * x)) for f in l], [-mp.pi, mp.pi])
 
 # Returns the number of decimal digits required to encode ceil(x)
 # This is used when x appears in the error bound, and the machine precision
