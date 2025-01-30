@@ -9,11 +9,9 @@ import weiss
 
 with mp.workdps(30):
 
-    nlft = NonLinearFourierSequence([1, 2, 3, 4], 5)
+    nlft = NonLinearFourierSequence([2j, 3, 2j])
     a, b = nlft.transform()
 
-    a2 = weiss.complete(b, verbose=True)
+    c = weiss.ratio(b, verbose=True)
 
-    print("a = ", a)
-    #print("b = ", b)
-    print("a2 = ", a2)
+    # TODO Riemann-Hilbert factorization
