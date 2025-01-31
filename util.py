@@ -2,6 +2,10 @@
 
 import mpmath as mp
 
+# easy computation of absolute value squared
+def abs2(z):
+    return mp.re(z)**2 + mp.im(z)**2
+
 # Plots the given function(s) on the unit circle.
 # More explicitly, given f(z), f(e^ix) will be plotted with respect to x.
 def plot_on_circle(l):

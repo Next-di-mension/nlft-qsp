@@ -2,7 +2,8 @@
 import mpmath as mp
 
 from mpm_fft import fft, next_power_of_two, sequence_shift
-from nlft import Polynomial, abs2
+from poly import Polynomial
+from util import abs2
 
 
 # Returns a Laurent polynomial passing through the given points.
@@ -32,7 +33,7 @@ def weiss_internal(b: Polynomial, mode='completion', verbose=False):
         G_points = G.eval_at_roots_of_unity(N)
 
         a = laurent_approximation([mp.exp(gz) for gz in G_points])
-        a = a.truncate(-b.effective_degree(), 1) # a and b must have the same support
+        a = a.truncate(-b.effective_degree(), 0) # a and b must have the same support
 
         threshold = (a * a.conjugate() + b * b.conjugate() - 1).l2_norm()
 
@@ -42,7 +43,9 @@ def weiss_internal(b: Polynomial, mode='completion', verbose=False):
         N *= 2
 
     if mode == 'ratio':
-        return laurent_approximation([bz * mp.exp(-gz) for bz, gz in zip(b_points, G_points)])
+        c = laurent_approximation([bz * mp.exp(-gz) for bz, gz in zip(b_points, G_points)])
+
+        return c.truncate(-N//4, N//4)
     else:
         return a
 

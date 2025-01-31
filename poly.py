@@ -1,0 +1,276 @@
+
+from numbers import Number
+from typing import SupportsComplex, SupportsFloat
+from mpmath import mp, conj, sqrt
+
+from mpm_fft import fft, ifft, next_power_of_two, sequence_shift
+from util import abs2, coeffs_pad
+
+
+"""Type alias for generic floating-point real numbers.
+"""
+type generic_real = SupportsFloat | float
+
+"""Type alias for generic floating-point complex numbers.
+"""
+type generic_complex = SupportsComplex | complex
+
+
+
+class ComplexL0Sequence:
+    """Represents a sequence of complex numbers index by Z, whose support is finite.
+    
+    Attributes:
+        coeffs (list[generic_complex]): List of complex coefficients.
+        support_start (int): Index of the first element of the sequence.
+    """
+
+    def __init__(self, coeffs: list[generic_complex], support_start: int = 0):
+        """Initializes a complex sequence.
+
+        Args:
+            coeffs: List of complex numbers as coefficients.
+            support_start (optional): Index of the first element of the sequence. Defaults to 0.
+        """
+        self.coeffs = [mp.mpc(c) for c in coeffs]
+        self.support_start = support_start
+
+    def support(self) -> range:
+        """Returns the range in Z where the sequence is non-zero.
+
+        Note:
+            This simply checks the allocated array of coefficients but does not check leading or trailing zeros.
+
+        Returns:
+            range: The support of the sequence.
+        """
+        return range(self.support_start, self.support_start + len(self.coeffs))
+    
+    def __getitem__(self, k: int) -> generic_complex:
+        """Returns the k-th element of the sequence, i.e., F_k.
+
+        Args:
+            k (int): The index of the sequence.
+
+        Returns:
+            complex: The coefficient of F_k, or 0 if k is out of the support.
+        """
+        if k in self.support():
+            return self.coeffs[k - self.support_start]
+        return mp.mpc(0)
+
+    def __setitem__(self, k: int, c: generic_complex):
+        """Sets the coefficient of z^k to be c, allocating space if needed.
+
+        Args:
+            k (int): The exponent of z.
+            c (complex): The coefficient to set.
+        """
+        if self.support_start + len(self.coeffs) <= k:
+            self.coeffs.extend([mp.mpc(0)] * (k - self.support_start - len(self.coeffs) + 1))
+        elif self.support_start > k:
+            self.coeffs = [mp.mpc(0)] * (self.support_start - k) + self.coeffs
+            self.support_start = k
+        self.coeffs[k - self.support_start] = mp.mpc(c)
+
+    def l1_norm(self) -> generic_real:
+        """Computes the l1 norm of the sequence.
+
+        Returns:
+            float: The sum of absolute values of coefficients.
+        """
+        return sum(abs(c) for c in self.coeffs)
+
+    def l2_norm(self) -> generic_real:
+        """Computes the l2 norm.
+
+        Returns:
+            float: The l2 norm.
+        """
+        return sqrt(self.l2_squared_norm())
+
+    def l2_squared_norm(self) -> generic_real:
+        """Computes the squared l2 norm.
+
+        Returns:
+            float: The squared l2 norm, i.e., the sum of the squared absolute values.
+        """
+        return sum(abs2(c) for c in self.coeffs)
+    
+    def truncate(self, m: int, n: int):
+        """Keeps only the coefficients in [m, n], discarding the others.
+
+        Args:
+            m (int): Lower bound of degree.
+            n (int): Upper bound of degree.
+
+        Returns:
+            Polynomial: The truncated polynomial.
+        """
+        return Polynomial([self[k] for k in range(m, n+1)], m)
+
+
+
+class Polynomial(ComplexL0Sequence):
+    """Represents a general Laurent polynomial of one complex variable.
+
+    Attributes:
+        coeffs (list[generic_complex]): List of complex coefficients.
+        support_start (int): Minimum degree that appears in the polynomial.
+    """
+
+    def __init__(self, coeffs: list[generic_complex], support_start: int = 0):
+        """Initializes a Polynomial instance.
+
+        Args:
+            coeffs: List of complex numbers as coefficients.
+            support_start (optional): Minimum degree in the polynomial. Defaults to 0.
+        """
+        super().__init__(coeffs, support_start)
+
+    def duplicate(self):
+        """Creates a duplicate of the current polynomial.
+
+        Returns:
+            Polynomial: A new Polynomial instance with the same coefficients and support.
+        """
+        return Polynomial(self.coeffs, self.support_start)
+
+    def effective_degree(self) -> int:
+        """Returns the size of the support of the polynomial minus 1 (max degree - min degree).
+
+        Note:
+            This does not check for leading or trailing zeros in the coefficient array.
+
+        Returns:
+            int: The effective degree of the polynomial.
+        """
+        return len(self.coeffs) - 1
+
+    def conjugate(self):
+        r"""Returns the conjugate polynomial on the unit circle. If :math:`p(z) = \sum_k p_k z^k`, then its conjugate is defined as :math:`p^*(z) = \sum_k p_k^* z^{-k}`
+
+        Returns:
+            Polynomial: The conjugate polynomial.
+        """
+        conj_coeffs = [conj(x) for x in reversed(self.coeffs)]
+        return Polynomial(conj_coeffs, -(self.support_start + len(self.coeffs) - 1))
+
+    def schwarz_transform(self):
+        r"""Returns the anti-analytic polynomial whose real part gives the current polynomial.
+        
+        In other words, this is equivalent to adding :math:`iH[p]`, where :math:`H[p]` is the Hilbert transform of p.
+
+        Returns:
+            Polynomial: The Schwarz transform of the polynomial.
+        """
+        schwarz_coeffs = []
+        for k in self.support():
+            if k < 0:
+                schwarz_coeffs.append(2*self[k])
+            elif k == 0:
+                schwarz_coeffs.append(self[k])
+
+        return Polynomial(schwarz_coeffs, self.support_start)
+
+    def __add__(self, other):
+        if isinstance(other, Number):
+            q = self.duplicate()
+            q[0] += other
+
+            return q
+        elif not isinstance(other, Polynomial):
+            raise TypeError("Polynomial addition admits only other polynomials or scalars.")
+                
+        self_end = self.support_start + len(self.coeffs)
+        other_end = other.support_start + len(other.coeffs)
+        
+        sum_start = min(self.support_start, other.support_start)
+        sum_end = max(self_end, other_end)
+
+        sum_coeffs = []
+        for k in range(sum_start, sum_end):
+            res = mp.mpc(0)
+            
+            if self.support_start <= k and k < self_end:
+                res += self.coeffs[k - self.support_start]
+
+            if other.support_start <= k and k < other_end:
+                res += other.coeffs[k - other.support_start]
+
+            sum_coeffs.append(res)
+            
+        return Polynomial(sum_coeffs, sum_start)
+    
+    def __radd__(self, other):
+        return self + other
+    
+    def __neg__(self):
+        return Polynomial([-c for c in self.coeffs], self.support_start)
+    
+    def __sub__(self, other):
+        return self + (-other)
+    
+    def __rsub__(self, other):
+        return self + (-other)
+
+    def __mul__(self, other):
+        if isinstance(other, Number):
+            return Polynomial([other * c for c in self.coeffs], self.support_start)
+        elif not isinstance(other, Polynomial):
+            raise TypeError("Polynomial addition admits only other polynomials or scalars.")
+        len_c = len(self.coeffs) + len(other.coeffs) - 1
+
+        # TODO use extra precision here
+        coeffs_a = fft(coeffs_pad(self.coeffs, next_power_of_two(len_c)))
+        coeffs_b = fft(coeffs_pad(other.coeffs, next_power_of_two(len_c)))
+
+        # Multiply in the Fourier domain
+        coeffs_c = [a * b for a, b in zip(coeffs_a, coeffs_b)]
+
+        # Inverse FFT to get the result
+        new_coeffs = ifft(coeffs_c)
+        support_start = self.support_start + other.support_start  # Lowest degree of the new poly
+
+        return Polynomial(new_coeffs[0:len_c], support_start)
+    
+    def __rmul__(self, other):
+        return self * other
+
+    def __call__(self, z) -> generic_complex:
+        """Evaluates the polynomial using Horner's method.
+
+        Args:
+            z (complex): The point at which to evaluate the polynomial.
+
+        Returns:
+            complex: The evaluated result.
+        """
+        res = self.coeffs[-1]
+        for k in reversed(range(len(self.coeffs) - 1)):
+            res = res * z + self.coeffs[k]
+        return res * (z ** self.support_start)
+
+    def eval_at_roots_of_unity(self, N: int) -> list[generic_complex]:
+        """Evaluates the polynomial at the N-th roots of unity using the inverse FFT.
+
+        Args:
+            N (int): A power of two specifying the number of roots. If N is not a power of two, then the next power of two is taken.
+
+        Returns:
+            list[complex]: List of evaluations at the N-th roots of unity.
+            The k-th element will be `self[w^k]`, where `w` is the main N-th root of unity.
+        """
+        coeffs = coeffs_pad(self.coeffs, next_power_of_two(N))
+        coeffs = sequence_shift(coeffs, -self.support_start)
+        # This has the effect of having everything multiplied by z^s
+
+        return ifft(coeffs, normalize=False)
+
+    def __str__(self):
+        """Converts the polynomial to a human-readable string representation.
+
+        Returns:
+            str: The string representation of the polynomial.
+        """
+        return ' + '.join(f"{c} z^{self.support_start + k}" for k, c in enumerate(self.coeffs))
