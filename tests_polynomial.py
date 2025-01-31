@@ -124,10 +124,10 @@ class PolynomialTestCase(unittest.TestCase):
         for a, b in zip(seq, pseq2):
             self.assertAlmostEqual(a, b, delta=1e-25)
 
-    def schwarz_transform(self):
+    def test_schwarz_transform(self):
         p = Polynomial([])
         q = p.schwarz_transform()
-        self.assertTrue(q.coeffs, [])
+        self.assertEqual(q.coeffs, [])
 
         p = Polynomial([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], support_start=-5)
         q = p.schwarz_transform()
