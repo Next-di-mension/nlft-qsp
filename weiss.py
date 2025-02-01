@@ -6,9 +6,18 @@ from poly import Polynomial
 from util import abs2
 
 
-# Returns a Laurent polynomial passing through the given points.
-# points is a list of values, where the k-th is the function computed on omega_N^k, where N = len(points)
-def laurent_approximation(points) -> Polynomial:
+def laurent_approximation(points: list) -> Polynomial:
+    r"""Returns a Laurent polynomial passing through the given points.
+
+    Note:
+        `N = len(points)` is assumed to be a power of two.
+
+    Args:
+        points (list[complex]): list of values, where the k-th element is considered to be :math:`f(e^{2\pi i k/N})`.
+
+    Returns:
+        Polynomial: The unique Laurent polynomial `P(z)` of degree `N = len(points)` satisfying :math:`P(e^{2\pi i k/N}) = f(e^{2\pi i k/N})`, up to working precision, whose frequencies are shifted to be in :math:`[-N/2, N/2)`
+    """
     N = len(points)
 
     coeffs = fft(points, normalize=True)
@@ -16,11 +25,17 @@ def laurent_approximation(points) -> Polynomial:
 
     return Polynomial(coeffs, support_start=-N//2)
 
+def weiss_internal(b: Polynomial, mode: str='completion', verbose=False):
+    """Internal function for Weiss' algorithm. The user should call `weiss.complete`, or `weiss.ratio`.
 
+    Args:
+        b (Polynomial): The starting polynomial to complete.
+        mode ('completion' | 'ratio', optional): Whether to return a complementary polynomial (`'completion'`) or the ratio of b with its complementary polynomial (`'ratio'`). Defaults to 'completion'.
+        verbose (bool, optional): verbosity during the procedure. Defaults to False.
 
-# mode='completion' | 'ratio'
-def weiss_internal(b: Polynomial, mode='completion', verbose=False):
-
+    Returns:
+        Polynomial: If `mode='completion'`, a polynomial :math:`a(z)` satisfying :math:`|a|^2 + |b|^2 = 1` on the unit circle (up to working precision). If `mode='ratio'`, a polynomial :math:`c(z)` that approximates :math:`b/a`.
+    """
     N = 8*next_power_of_two(b.effective_degree()) # Exponential search on N
     threshold = 1
 
@@ -43,19 +58,30 @@ def weiss_internal(b: Polynomial, mode='completion', verbose=False):
         N *= 2
 
     if mode == 'ratio':
-        c = laurent_approximation([bz * mp.exp(-gz) for bz, gz in zip(b_points, G_points)])
-
-        return c.truncate(-N//4, N//4)
+        return laurent_approximation([bz * mp.exp(-gz) for bz, gz in zip(b_points, G_points)])
     else:
         return a
 
-
-# Returns a polynomial a such that a * a.conjugate() + b * b.conjugate() = 1, up to working precision.
-# The returned polynomial will be the unique outer completion whose constant coefficient is real and positive.
 def complete(b: Polynomial, verbose=False):
+    """Uses Weiss' algorithm to find a complementary polynomial to the given one. The polynomial will also be the unique outer, positive-mean polynomial with this property, according to arXiv:2407.05634.
+
+    Args:
+        b (Polynomial): The polynomial to complete.
+        verbose (bool, optional): verbosity during the procedure. Defaults to False.
+
+    Returns:
+        Polynomial: A polynomial :math:`a(z)` satisfying :math:`|a|^2 + |b|^2 = 1` on the unit circle (up to working precision).
+    """
     return weiss_internal(b, mode='completion', verbose=verbose)
 
-
-# Returns a Laurent polynomial approximating b/a, where a is the unique outer positive-mean completion of b, up to working precision.
 def ratio(b: Polynomial, verbose=False):
+    """Uses Weiss' algorithm to compute :math:`b/a`, where :math:`a` is the unique outer, positive-mean polynomial such that `|a|^2 + |b|^2 = 1`, up to working precision.
+
+    Args:
+        b (Polynomial): The polynomial to complete.
+        verbose (bool, optional): verbosity during the procedure. Defaults to False.
+
+    Returns:
+        Polynomial: A polynomial :math:`c` that approximates :math:`b/a`.
+    """
     return weiss_internal(b, mode='ratio', verbose=verbose)
