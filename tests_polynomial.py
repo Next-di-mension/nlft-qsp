@@ -140,6 +140,8 @@ class PolynomialTestCase(unittest.TestCase):
             else:
                 self.assertEqual(q[k], 0)
 
+    # left uncovered: sup_norm()
+
 
 class NLFTTestCase(unittest.TestCase):
 

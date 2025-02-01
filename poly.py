@@ -266,6 +266,17 @@ class Polynomial(ComplexL0Sequence):
         # This has the effect of having everything multiplied by z^s
 
         return ifft(coeffs, normalize=False)
+    
+    def sup_norm(self, N=1024):
+        """Estimates the supremum norm of the polynomial over the unit circle
+        
+        Args:
+            N (int, optional): the number of samples to compute the maximum from. If N is not a power of two, then the next power of two is taken.
+
+        Returns:
+            float: An estimate for the supremum norm of the polynomial over the unit circle.
+        """
+        return max([abs(sample) for sample in self.eval_at_roots_of_unity(N)])
 
     def __str__(self):
         """Converts the polynomial to a human-readable string representation.
