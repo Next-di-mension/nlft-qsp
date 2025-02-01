@@ -236,6 +236,12 @@ class Polynomial(ComplexL0Sequence):
     
     def __rmul__(self, other):
         return self * other
+    
+    def __truediv__(self, other):
+        if isinstance(other, Number):
+            return Polynomial([other / c for c in self.coeffs], self.support_start)
+        
+        raise TypeError("Polynomial division is only possible with scalars.")
 
     def __call__(self, z) -> generic_complex:
         """Evaluates the polynomial using Horner's method.
