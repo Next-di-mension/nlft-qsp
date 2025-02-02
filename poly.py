@@ -227,7 +227,7 @@ class Polynomial(ComplexL0Sequence):
     
     def __truediv__(self, other):
         if isinstance(other, Number):
-            return Polynomial([other / c for c in self.coeffs], self.support_start)
+            return Polynomial([c / other for c in self.coeffs], self.support_start)
         
         raise TypeError("Polynomial division is only possible with scalars.")
 
