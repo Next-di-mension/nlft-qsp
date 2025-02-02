@@ -40,6 +40,7 @@ class RHWTestCase(unittest.TestCase):
         self.assertAlmostEqual((a * a.conjugate() + b * b.conjugate() - 1).l2_norm(), 0, delta=10**(-mp.mp.dps+2))
 
         self.assertAlmostEqual(max([abs(c(mp.expjpi(2 * k/512)) - b(mp.expjpi(2 * k/512))/a(mp.expjpi(2 * k/512))) for k in range(512)]), 0, delta=10**(-mp.mp.dps+2))
+        self.assertEqual(c.support().stop, b.support().stop)
 
 
 if __name__ == '__main__':

@@ -96,18 +96,6 @@ class ComplexL0Sequence:
             float: The squared l2 norm, i.e., the sum of the squared absolute values.
         """
         return sum(abs2(c) for c in self.coeffs)
-    
-    def truncate(self, m: int, n: int):
-        """Keeps only the coefficients in [m, n], discarding the others.
-
-        Args:
-            m (int): Lower bound of degree.
-            n (int): Upper bound of degree.
-
-        Returns:
-            Polynomial: The truncated polynomial.
-        """
-        return Polynomial([self[k] for k in range(m, n+1)], m)
 
 
 
@@ -283,6 +271,25 @@ class Polynomial(ComplexL0Sequence):
             float: An estimate for the supremum norm of the polynomial over the unit circle.
         """
         return max([abs(sample) for sample in self.eval_at_roots_of_unity(N)])
+    
+    def truncate(self, m: int, n: int):
+        """Keeps only the coefficients in [m, n], discarding the others.
+
+        Args:
+            m (int): Lower bound of degree.
+            n (int): Upper bound of degree.
+
+        Returns:
+            Polynomial: A new, truncated polynomial.
+        """
+        return Polynomial([self[k] for k in range(m, n+1)], m)
+    
+    def only_positive_degrees(self):
+        """Discards all the negative degrees, keeping only the non-negative ones.
+        
+        Returns:
+            Polynomial: A new polynomial containing only the positive-degree coefficients."""
+        return self.truncate(0, self.support_start + len(self.coeffs) - 1)
 
     def __str__(self):
         """Converts the polynomial to a human-readable string representation.

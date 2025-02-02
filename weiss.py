@@ -58,7 +58,8 @@ def weiss_internal(b: Polynomial, compute_ratio=False, verbose=False):
         N *= 2
 
     if compute_ratio:
-        return a, laurent_approximation([bz * mp.exp(-gz) for bz, gz in zip(b_points, G_points)])
+        c = laurent_approximation([bz * mp.exp(-gz) for bz, gz in zip(b_points, G_points)])
+        return a, c.truncate(c.support_start, b.support().stop - 1)
     else:
         return a
 
