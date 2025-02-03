@@ -84,12 +84,10 @@ def inlft(b: Polynomial, c: Polynomial) -> NonLinearFourierSequence:
     Returns:
         NonLinearFourierSequence: A sequence whose NLFT is equal to `(a, b)` (up to working precision).
     """
-    if c.support().stop != b.support().end:
+    if c.support().stop != b.support().stop:
         raise ValueError("The supports of `b` and `c` must end at the same point.")
 
-
     F = []
-
     for k in b.support():
         Ap, Bp = factorize(c, k)
 
