@@ -1,14 +1,12 @@
 
 import unittest
 
+from tests import random_sequence
+
 import mpmath as mp
 
-from nlft_qsp.mpm_fft import fft
+from nlft_qsp.numeric.mpm_fft import fft
 from nlft_qsp.nlft import NonLinearFourierSequence, Polynomial
-
-
-def random_sequence(c, N):
-    return [c*mp.rand() + c*1j*mp.rand() for _ in range(N)]
 
 
 class PolynomialTestCase(unittest.TestCase):
@@ -186,7 +184,6 @@ class NLFTTestCase(unittest.TestCase):
 
         for bk, bhk in zip(b.coeffs, [0.0685994, -0.720294, 0.137199]):
             self.assertAlmostEqual(bk, bhk, delta=10e-5)
-
 
 
 if __name__ == '__main__':

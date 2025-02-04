@@ -1,7 +1,7 @@
 
 import mpmath as mp
 
-from mpm_fft import fft, next_power_of_two, sequence_shift
+from nlft_qsp.numeric.mpm_fft import fft, next_power_of_two, sequence_shift
 from poly import Polynomial
 from util import abs2
 

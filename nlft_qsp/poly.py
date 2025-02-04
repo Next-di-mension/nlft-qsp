@@ -3,7 +3,7 @@ from numbers import Number
 from typing import SupportsComplex, SupportsFloat
 from mpmath import mp, conj, sqrt
 
-from mpm_fft import fft, ifft, next_power_of_two, sequence_shift
+from nlft_qsp.numeric.mpm_fft import fft, ifft, next_power_of_two, sequence_shift
 from util import abs2, coeffs_pad
 
 
