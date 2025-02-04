@@ -3,8 +3,8 @@ import unittest
 
 import mpmath as mp
 
-from mpm_fft import fft
-from nlft import NonLinearFourierSequence, Polynomial
+from nlft_qsp.mpm_fft import fft
+from nlft_qsp.nlft import NonLinearFourierSequence, Polynomial
 
 
 def random_sequence(c, N):
