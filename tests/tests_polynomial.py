@@ -3,9 +3,7 @@ import unittest
 
 from tests import random_sequence
 
-import mpmath as mp
-
-from nlft_qsp.numeric.mpm_fft import fft
+from nlft_qsp.numeric import bd
 from nlft_qsp.nlft import NonLinearFourierSequence, Polynomial
 
 
@@ -43,7 +41,7 @@ class PolynomialTestCase(unittest.TestCase):
         q = p.conjugate()
 
         for k in range(10):
-            self.assertEqual(q[k], mp.conj(p[-k]))
+            self.assertEqual(q[k], bd.conj(p[-k]))
 
     def test_truncate(self):
         p = Polynomial(range(20), support_start=-10)
@@ -57,7 +55,7 @@ class PolynomialTestCase(unittest.TestCase):
                 self.assertEqual(q[k], p[k])
 
     def test_add(self):
-        p = mp.mpc(1) + Polynomial([1, 2, 3])
+        p = bd.make_complex(1) + Polynomial([1, 2, 3])
         self.assertEqual(p.coeffs, [2, 2, 3])
         self.assertEqual(p.support_start, 0)
 
@@ -83,7 +81,7 @@ class PolynomialTestCase(unittest.TestCase):
         self.assertEqual(q.coeffs, [4, 6, 8, 3])
         self.assertEqual(q.support_start, -4)
 
-    @mp.workdps(30)
+    @bd.workdps(30)
     def test_mul(self):
         p = 3 * Polynomial([1, 2, 3], support_start=-10)
         self.assertEqual(p.coeffs, [3, 6, 9])
@@ -97,7 +95,7 @@ class PolynomialTestCase(unittest.TestCase):
         self.assertEqual(q.support_start, -6)
 
 
-    @mp.workdps(30)
+    @bd.workdps(30)
     def test_call(self):
         p = Polynomial([3, 2, 1], support_start=0)
         q = Polynomial([5, -1, 0, 2], support_start=-3)
@@ -105,7 +103,7 @@ class PolynomialTestCase(unittest.TestCase):
         self.assertAlmostEqual(p(1+1j), 5+4j, delta=10e-25)
         self.assertAlmostEqual(q(1+1j), 0.75-0.75j, delta=10e-25)
 
-    @mp.workdps(30)
+    @bd.workdps(30)
     def test_eval_at_roots_of_unity(self):
         seq = random_sequence(16, 6)
 
@@ -115,10 +113,10 @@ class PolynomialTestCase(unittest.TestCase):
         ep = p.eval_at_roots_of_unity(16)
         eq = q.eval_at_roots_of_unity(16)
 
-        for z, a, b in zip(mp.unitroots(16), ep, eq):
+        for z, a, b in zip(bd.unitroots(16), ep, eq):
             self.assertAlmostEqual(a, b * (z ** 2), delta=1e-25)
 
-        pseq2 = fft(ep, normalize=True)
+        pseq2 = bd.fft(ep, normalize=True)
         for a, b in zip(seq, pseq2):
             self.assertAlmostEqual(a, b, delta=1e-25)
 
@@ -143,7 +141,7 @@ class PolynomialTestCase(unittest.TestCase):
 
 class NLFTTestCase(unittest.TestCase):
 
-    @mp.workdps(10)
+    @bd.workdps(10)
     def test_transform(self):
         nlft = NonLinearFourierSequence([])
         a, b = nlft.transform()

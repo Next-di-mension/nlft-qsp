@@ -1,7 +1,7 @@
-from mpmath import mp, sqrt
+
+from numeric import bd
 
 from poly import ComplexL0Sequence, Polynomial
-from util import abs2
 
 
 class NonLinearFourierSequence(ComplexL0Sequence):
@@ -34,11 +34,11 @@ class NonLinearFourierSequence(ComplexL0Sequence):
             tuple[Polynomial, Polynomial]: The SU(2)-NLFT of the subsequence in [inf, sup].
         """
         if sup - inf <= 0:
-            return Polynomial([mp.mpc(1)]), Polynomial([mp.mpc(0)])
+            return Polynomial([bd.make_complex(1)]), Polynomial([bd.make_complex(0)])
 
         if sup - inf <= 1:
-            F = mp.mpc(self[inf])
-            den = sqrt(1 + abs2(F))
+            F = bd.make_complex(self[inf])
+            den = bd.sqrt(1 + bd.abs2(F))
             return Polynomial([1/den]), Polynomial([F/den], inf)  # (1/den, F/den z^inf)
         
         mid = (sup + inf) // 2

@@ -1,14 +1,12 @@
 
-import mpmath as mp
+from numeric import bd
 
 from nlft import NonLinearFourierSequence
-
 
 import riemann_hilbert, weiss
 
 
-
-with mp.workdps(90):
+with bd.workdps(90):
 
     nlft = NonLinearFourierSequence([1, 2, 3])
     _, b = nlft.transform()

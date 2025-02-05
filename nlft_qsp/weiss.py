@@ -1,9 +1,8 @@
 
-import mpmath as mp
+from numeric import bd
 
-from nlft_qsp.numeric.mpm_fft import fft, next_power_of_two, sequence_shift
 from poly import Polynomial
-from util import abs2
+from util import next_power_of_two, sequence_shift
 
 
 def laurent_approximation(points: list) -> Polynomial:
@@ -20,7 +19,7 @@ def laurent_approximation(points: list) -> Polynomial:
     """
     N = len(points)
 
-    coeffs = fft(points, normalize=True)
+    coeffs = bd.fft(points, normalize=True)
     coeffs = sequence_shift(coeffs, -N//2) # Zero frequency in the middle
 
     return Polynomial(coeffs, support_start=-N//2)
@@ -39,15 +38,15 @@ def weiss_internal(b: Polynomial, compute_ratio=False, verbose=False):
     N = 8*next_power_of_two(b.effective_degree()) # Exponential search on N
     threshold = 1
 
-    while threshold > 10 ** (-mp.mp.dps+1):
+    while threshold > 10 * bd.machine_eps():
         b_points = b.eval_at_roots_of_unity(N)
 
-        R = laurent_approximation([mp.log(1 - abs2(bz))/2 for bz in b_points])
+        R = laurent_approximation([bd.log(1 - bd.abs2(bz))/2 for bz in b_points])
 
         G = R.schwarz_transform()
         G_points = G.eval_at_roots_of_unity(N)
 
-        a = laurent_approximation([mp.exp(gz) for gz in G_points])
+        a = laurent_approximation([bd.exp(gz) for gz in G_points])
         a = a.truncate(-b.effective_degree(), 0) # a and b must have the same support
 
         threshold = (a * a.conjugate() + b * b.conjugate() - 1).l2_norm()
@@ -58,7 +57,7 @@ def weiss_internal(b: Polynomial, compute_ratio=False, verbose=False):
         N *= 2
 
     if compute_ratio:
-        c = laurent_approximation([bz * mp.exp(-gz) for bz, gz in zip(b_points, G_points)])
+        c = laurent_approximation([bz * bd.exp(-gz) for bz, gz in zip(b_points, G_points)])
         return a, c.truncate(c.support_start, b.support().stop - 1)
     else:
         return a

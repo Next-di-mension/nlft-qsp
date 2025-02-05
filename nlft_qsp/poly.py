@@ -1,20 +1,10 @@
 
 from numbers import Number
-from typing import SupportsComplex, SupportsFloat
-from mpmath import mp, conj, sqrt
 
-from nlft_qsp.numeric.mpm_fft import fft, ifft, next_power_of_two, sequence_shift
-from util import abs2, coeffs_pad
+from numeric import bd, coeffs_pad
+from numeric.backend import generic_complex, generic_real
 
-
-"""Type alias for generic floating-point real numbers.
-"""
-type generic_real = SupportsFloat | float
-
-"""Type alias for generic floating-point complex numbers.
-"""
-type generic_complex = SupportsComplex | complex
-
+from util import next_power_of_two, sequence_shift
 
 
 class ComplexL0Sequence:
@@ -32,7 +22,7 @@ class ComplexL0Sequence:
             coeffs: List of complex numbers as coefficients.
             support_start (optional): Index of the first element of the sequence. Defaults to 0.
         """
-        self.coeffs = [mp.mpc(c) for c in coeffs]
+        self.coeffs = [bd.make_complex(c) for c in coeffs]
         self.support_start = support_start
 
     def support(self) -> range:
@@ -57,7 +47,7 @@ class ComplexL0Sequence:
         """
         if k in self.support():
             return self.coeffs[k - self.support_start]
-        return mp.mpc(0)
+        return bd.make_complex(0)
 
     def __setitem__(self, k: int, c: generic_complex):
         """Sets the coefficient of z^k to be c, allocating space if needed.
@@ -67,11 +57,11 @@ class ComplexL0Sequence:
             c (complex): The coefficient to set.
         """
         if self.support_start + len(self.coeffs) <= k:
-            self.coeffs.extend([mp.mpc(0)] * (k - self.support_start - len(self.coeffs) + 1))
+            self.coeffs.extend([bd.make_complex(0)] * (k - self.support_start - len(self.coeffs) + 1))
         elif self.support_start > k:
-            self.coeffs = [mp.mpc(0)] * (self.support_start - k) + self.coeffs
+            self.coeffs = [bd.make_complex(0)] * (self.support_start - k) + self.coeffs
             self.support_start = k
-        self.coeffs[k - self.support_start] = mp.mpc(c)
+        self.coeffs[k - self.support_start] = bd.make_complex(c)
 
     def l1_norm(self) -> generic_real:
         """Computes the l1 norm of the sequence.
@@ -79,7 +69,7 @@ class ComplexL0Sequence:
         Returns:
             float: The sum of absolute values of coefficients.
         """
-        return sum(abs(c) for c in self.coeffs)
+        return sum(bd.abs(c) for c in self.coeffs)
 
     def l2_norm(self) -> generic_real:
         """Computes the l2 norm.
@@ -87,7 +77,7 @@ class ComplexL0Sequence:
         Returns:
             float: The l2 norm.
         """
-        return sqrt(self.l2_squared_norm())
+        return bd.sqrt(self.l2_squared_norm())
 
     def l2_squared_norm(self) -> generic_real:
         """Computes the squared l2 norm.
@@ -95,7 +85,7 @@ class ComplexL0Sequence:
         Returns:
             float: The squared l2 norm, i.e., the sum of the squared absolute values.
         """
-        return sum(abs2(c) for c in self.coeffs)
+        return sum(bd.abs2(c) for c in self.coeffs)
 
 
 
@@ -141,7 +131,7 @@ class Polynomial(ComplexL0Sequence):
         Returns:
             Polynomial: The conjugate polynomial.
         """
-        conj_coeffs = [conj(x) for x in reversed(self.coeffs)]
+        conj_coeffs = [bd.conj(x) for x in reversed(self.coeffs)]
         return Polynomial(conj_coeffs, -(self.support_start + len(self.coeffs) - 1))
 
     def schwarz_transform(self):
@@ -178,7 +168,7 @@ class Polynomial(ComplexL0Sequence):
 
         sum_coeffs = []
         for k in range(sum_start, sum_end):
-            res = mp.mpc(0)
+            res = bd.make_complex(0)
             
             if self.support_start <= k and k < self_end:
                 res += self.coeffs[k - self.support_start]
@@ -210,14 +200,14 @@ class Polynomial(ComplexL0Sequence):
         len_c = len(self.coeffs) + len(other.coeffs) - 1
 
         # TODO use extra precision here
-        coeffs_a = fft(coeffs_pad(self.coeffs, next_power_of_two(len_c)))
-        coeffs_b = fft(coeffs_pad(other.coeffs, next_power_of_two(len_c)))
+        coeffs_a = bd.fft(coeffs_pad(self.coeffs, next_power_of_two(len_c)))
+        coeffs_b = bd.fft(coeffs_pad(other.coeffs, next_power_of_two(len_c)))
 
         # Multiply in the Fourier domain
         coeffs_c = [a * b for a, b in zip(coeffs_a, coeffs_b)]
 
         # Inverse FFT to get the result
-        new_coeffs = ifft(coeffs_c)
+        new_coeffs = bd.ifft(coeffs_c)
         support_start = self.support_start + other.support_start  # Lowest degree of the new poly
 
         return Polynomial(new_coeffs[0:len_c], support_start)
@@ -259,7 +249,7 @@ class Polynomial(ComplexL0Sequence):
         coeffs = sequence_shift(coeffs, -self.support_start)
         # This has the effect of having everything multiplied by z^s
 
-        return ifft(coeffs, normalize=False)
+        return bd.ifft(coeffs, normalize=False)
     
     def sup_norm(self, N=1024):
         """Estimates the supremum norm of the polynomial over the unit circle

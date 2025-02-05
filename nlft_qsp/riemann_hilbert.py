@@ -1,8 +1,9 @@
 
-import mpmath as mp
+from numeric import bd
 
 from nlft import NonLinearFourierSequence
 from poly import Polynomial
+
 
 def toeplitz(c: Polynomial, k: int):
     r"""Returns the `(n-k+1) x (n-k+1)` Toeplitz matrix constructed with the coefficients of c (`n` is the index of the last coefficient of c). Specifically, the first column of the matrix will be `[c[n], c[n-1], ..., c[k]]`, i.e., the reversed order of its coefficients in [k, n].
@@ -15,7 +16,7 @@ def toeplitz(c: Polynomial, k: int):
     """
     n = c.support().stop - 1
 
-    return mp.matrix([[c[n + i - j] for i in range(0, n-k+1)] for j in range(0, n-k+1)])
+    return bd.matrix([[c[n + i - j] for i in range(0, n-k+1)] for j in range(0, n-k+1)])
 
 def system_matrix(c: Polynomial, k: int):
     r"""Returns a block matrix of the form `[[I; -T.T], [mp.conj(T); I]]`, where `T` is the
@@ -33,11 +34,11 @@ def system_matrix(c: Polynomial, k: int):
 
 
     T = toeplitz(c, k)
-    M = mp.zeros(2*d+2)
+    M = bd.zeros(2*d+2, 2*d+2)
     for i in range(d+1):
         for j in range(d+1):
             M[i, (d+1)+j] = -T[j, i]
-            M[(d+1)+i, j] = mp.conj(T[i, j])
+            M[(d+1)+i, j] = bd.conj(T[i, j])
 
     for i in range(2*d+2):
         M[i, i] = 1
@@ -62,13 +63,13 @@ def factorize(c: Polynomial, k: int, normalize: bool = False):
     d = n - k
 
     A = system_matrix(c, k)
-    x = mp.lu_solve(A, [0] * (2*d+1) + [1])
+    x = bd.solve_system(A, [0] * (2*d+1) + [1])
 
     Ap = Polynomial(x[d+1:2*d+2], support_start=-d)
     Bp = Polynomial(x[0:d+1])
 
     if normalize:
-        a_inf = mp.sqrt(Ap[0])
+        a_inf = bd.sqrt(Ap[0])
         Bp /= a_inf
         Ap /= a_inf
     
