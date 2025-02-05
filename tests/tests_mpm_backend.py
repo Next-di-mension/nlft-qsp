@@ -1,12 +1,18 @@
 
 import unittest
 
-from nlft_qsp.numeric import bd
-
 from tests import random_sequence
+
+import mpmath as mp
+
+from nlft_qsp.numeric.backend_mpmath import MPMathBackend
+from nlft_qsp.numeric import bd, set_backend
 
 
 class MPMathBackendTestCase(unittest.TestCase):
+
+    def setUp(self):
+        set_backend(MPMathBackend(mp.mp))
     
     @bd.workdps(10)
     def test_fft(self):

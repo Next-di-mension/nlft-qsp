@@ -1,10 +1,12 @@
 
-from numeric import bd
+from numeric.backend_numpy import NumpyBackend
+from numeric import bd, set_backend
 
 from nlft import NonLinearFourierSequence
 
 import riemann_hilbert, weiss
 
+set_backend(NumpyBackend())
 
 with bd.workdps(90):
 

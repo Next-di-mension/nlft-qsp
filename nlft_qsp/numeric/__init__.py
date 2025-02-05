@@ -9,6 +9,12 @@ and offered by the underlying library."""
 bd = MPMathBackend(mp.mp)
 
 
+def set_backend(new_bd):
+    """Sets the current working backend to the given `NumericBackend` object."""
+    global bd
+    bd = new_bd
+
+
 def plot_on_circle(l):
     """Plots the given functions on the unit circle. The functions must be given as complex functions :math:`f(z)`,
     and the plot will be of :math:`f(e^ix)` for `x \in [-\pi, \pi]`.

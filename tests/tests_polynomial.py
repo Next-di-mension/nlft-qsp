@@ -3,11 +3,15 @@ import unittest
 
 from tests import random_sequence
 
-from nlft_qsp.numeric import bd
+from nlft_qsp.numeric.backend_numpy import NumpyBackend
+from nlft_qsp.numeric import bd, set_backend
 from nlft_qsp.nlft import NonLinearFourierSequence, Polynomial
 
 
 class PolynomialTestCase(unittest.TestCase):
+
+    def setUp(self):
+        set_backend(NumpyBackend())
     
     def test_get_set(self):
         p = Polynomial([1, 2, 3, 4], support_start=-3)

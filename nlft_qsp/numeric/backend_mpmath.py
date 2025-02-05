@@ -7,7 +7,11 @@ from util import next_power_of_two
 
 
 class MPMathBackend(NumericBackend):
-    """Numeric backend for the mpmath package. This exposes the mpmath implementation."""
+    """Numeric backend for the mpmath package. This exposes the mpmath implementation.
+    
+    Note:
+        The mpmath package allows to compute with arbitrary precision, but its performance is limited.
+    """
 
     def __init__(self, ctx):
         """Initializes an mpmath backend interface with the given mpmath context.
