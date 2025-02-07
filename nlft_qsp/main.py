@@ -14,7 +14,7 @@ with bd.workdps(90):
 
     a, c = weiss.ratio(b)
 
-    new_nlft = riemann_hilbert.inlft(b, c)
+    new_nlft = riemann_hilbert.inlft_hc(b, c)
 
     _, b2 = new_nlft.transform()
 
