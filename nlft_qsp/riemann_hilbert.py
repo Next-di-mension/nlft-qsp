@@ -1,5 +1,5 @@
 
-from numeric import bd
+import numerics as bd
 
 from nlft import NonLinearFourierSequence
 from poly import Polynomial

@@ -1,5 +1,5 @@
 
-from numeric import bd
+import numerics as bd
 
 from poly import ComplexL0Sequence, Polynomial
 

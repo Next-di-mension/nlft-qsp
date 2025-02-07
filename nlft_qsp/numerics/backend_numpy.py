@@ -1,10 +1,21 @@
 
 import numpy as np
 
-from numeric.backend import NumericBackend
-from numeric.backend import generic_complex, generic_real
+
+from numerics.backend import NumericBackend
+from numerics.backend import generic_complex, generic_real
 
 from util import next_power_of_two
+
+def select_largest_dtype():
+    """Select the largest dtype available in the platform."""
+    dtypes = ['complex512', 'complex256', 'complex192', 'complex160', 'complex128']
+
+    for t in dtypes:
+        if hasattr(np, t):
+            return getattr(np, t)
+        
+    return complex
 
 
 class NumpyBackend(NumericBackend):
@@ -15,14 +26,19 @@ class NumpyBackend(NumericBackend):
         but it gives poor precision.
     """
 
-    def __init__(self, dtype=np.complex128):
+    def __init__(self, dtype=None):
         """Initializes a numpy backend interface with the given numpy data type.
         
         Args:
-            dtype: The numpy data type to use. Defaults to `complex128`.
+            dtype: The numpy data type to use. If none is specified, the biggest available data type will be chosen.
             If the platform allows for bigger data types, such as `complex192`, `complex256`, or `complex512`,
             they should be used instead.
         """
+        if dtype is None:
+            dtype = select_largest_dtype()
+        
+        print('NumPy backend: chosen dtype: %s' % (dtype.__name__))
+
         self.dtype = dtype
         self.ftype = np.finfo(dtype).dtype
 
@@ -86,16 +102,39 @@ class NumpyBackend(NumericBackend):
         else:
             norm = 'backward'
 
-        return np.fft(x, norm=norm)
+        return np.fft.fft(np.array(x), norm=norm).tolist()
     
     def ifft(self, x: list[generic_complex], normalize=True):
-        return [self.conj(y) for y in self.fft([self.conj(xi) for xi in x], normalize)]
+        N = len(x)
+        M = next_power_of_two(N)
+
+        if M > N:
+            x = x + [self.make_complex(0)] * (M - N)
+
+        if normalize:
+            norm = 'backward'
+        else:
+            norm = 'forward'
+
+        return np.fft.ifft(np.array(x), norm=norm).tolist()
     
     def matrix(self, x: list):
         return np.matrix(x, dtype=self.dtype)
     
+    def transpose(self, x):
+        return np.transpose(x)
+    
+    def conj_transpose(self, x):
+        return np.transpose(np.conjugate(x))
+    
     def zeros(self, m: int, n: int):
         return np.zeros(shape=(m, n), dtype=self.dtype)
     
+    def eye(self, n: int):
+        return np.eye(n, dtype=self.dtype)
+    
     def solve_system(self, A, b):
         return np.linalg.solve(A, b)
+    
+    def qr_decomp(self, A):
+        return np.linalg.qr(A)

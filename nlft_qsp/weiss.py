@@ -1,5 +1,5 @@
 
-from numeric import bd
+import numerics as bd
 
 from poly import Polynomial
 from util import next_power_of_two, sequence_shift

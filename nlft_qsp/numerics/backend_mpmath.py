@@ -1,7 +1,7 @@
 
 
-from numeric.backend import NumericBackend
-from numeric.backend import generic_complex, generic_real
+from numerics.backend import NumericBackend
+from numerics.backend import generic_complex, generic_real
 
 from util import next_power_of_two
 
@@ -113,8 +113,20 @@ class MPMathBackend(NumericBackend):
     def matrix(self, x: list):
         return self.ctx.matrix(x)
     
+    def transpose(self, x):
+        return x.transpose()
+    
+    def conj_transpose(self, x):
+        return x.transpose_conj()
+    
     def zeros(self, m: int, n: int):
         return self.ctx.zeros(m, n)
     
+    def eye(self, n: int):
+        return self.ctx.eye(n)
+    
     def solve_system(self, A, b):
         return self.ctx.lu_solve(A, b)
+    
+    def qr_decomp(self, A):
+        raise NotImplementedError("QR factorization for mpmath backend is not implemented yet.")

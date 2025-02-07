@@ -3,18 +3,11 @@ import unittest
 
 from tests import random_polynomial
 
-import mpmath as mp
-
-from nlft_qsp.numeric.backend_mpmath import MPMathBackend
-from nlft_qsp.numeric.backend_numpy import NumpyBackend
-from nlft_qsp.numeric import bd, set_backend
+import nlft_qsp.numerics as bd
 from nlft_qsp import riemann_hilbert, weiss
 
 
-class RHWTestCaseMPMath(unittest.TestCase):
-
-    def setUp(self):
-        set_backend(MPMathBackend(mp.mp))
+class RHWTestCase(unittest.TestCase):
     
     @bd.workdps(30)
     def test_rhw(self):

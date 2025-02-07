@@ -1,8 +1,9 @@
 
 from numbers import Number
 
-from numeric import bd, coeffs_pad
-from numeric.backend import generic_complex, generic_real
+import numerics as bd
+from numerics import coeffs_pad
+from numerics.backend import generic_complex, generic_real
 
 from util import next_power_of_two, sequence_shift
 

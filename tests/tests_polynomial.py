@@ -3,16 +3,12 @@ import unittest
 
 from tests import random_sequence
 
-from nlft_qsp.numeric.backend_numpy import NumpyBackend
-from nlft_qsp.numeric import bd, set_backend
+import nlft_qsp.numerics as bd
 from nlft_qsp.nlft import NonLinearFourierSequence, Polynomial
 
 
 class PolynomialTestCase(unittest.TestCase):
 
-    def setUp(self):
-        set_backend(NumpyBackend())
-    
     def test_get_set(self):
         p = Polynomial([1, 2, 3, 4], support_start=-3)
 
@@ -104,8 +100,8 @@ class PolynomialTestCase(unittest.TestCase):
         p = Polynomial([3, 2, 1], support_start=0)
         q = Polynomial([5, -1, 0, 2], support_start=-3)
 
-        self.assertAlmostEqual(p(1+1j), 5+4j, delta=10e-25)
-        self.assertAlmostEqual(q(1+1j), 0.75-0.75j, delta=10e-25)
+        self.assertAlmostEqual(p(1+1j), 5+4j, delta=10 * bd.machine_threshold())
+        self.assertAlmostEqual(q(1+1j), 0.75-0.75j, delta=10 * bd.machine_threshold())
 
     @bd.workdps(30)
     def test_eval_at_roots_of_unity(self):
@@ -118,11 +114,11 @@ class PolynomialTestCase(unittest.TestCase):
         eq = q.eval_at_roots_of_unity(16)
 
         for z, a, b in zip(bd.unitroots(16), ep, eq):
-            self.assertAlmostEqual(a, b * (z ** 2), delta=1e-25)
+            self.assertAlmostEqual(a, b * (z ** 2), delta=10 * bd.machine_threshold())
 
         pseq2 = bd.fft(ep, normalize=True)
         for a, b in zip(seq, pseq2):
-            self.assertAlmostEqual(a, b, delta=1e-25)
+            self.assertAlmostEqual(a, b, delta=10 * bd.machine_threshold())
 
     def test_schwarz_transform(self):
         p = Polynomial([])
@@ -161,13 +157,13 @@ class NLFTTestCase(unittest.TestCase):
         self.assertEqual(a.support_start, -3)
         self.assertEqual(b.support_start, 0)
 
-        self.assertAlmostEqual((a * a.conjugate() + b * b.conjugate() - 1).l2_norm(), 0, delta=10e-8)
+        self.assertAlmostEqual((a * a.conjugate() + b * b.conjugate() - 1).l2_norm(), 0, delta=10 * bd.machine_threshold())
         
         for ak, ahk in zip(a.coeffs, [-0.0970143, 0.315296, -0.485071, 0.0242536]):
-            self.assertAlmostEqual(ak, ahk, delta=10e-5)
+            self.assertAlmostEqual(ak, ahk, delta=1e-5)
 
         for bk, bhk in zip(b.coeffs, [0.0242536, -0.388057, -0.703353, 0.0970143]):
-            self.assertAlmostEqual(bk, bhk, delta=10e-5)
+            self.assertAlmostEqual(bk, bhk, delta=1e-5)
 
 
         nlft = NonLinearFourierSequence([2, 3, 4], support_start=1)
@@ -179,13 +175,13 @@ class NLFTTestCase(unittest.TestCase):
         self.assertEqual(a.support_start, -2)
         self.assertEqual(b.support_start, 1)
 
-        self.assertAlmostEqual((a * a.conjugate() + b * b.conjugate() - 1).l2_norm(), 0, delta=10e-8)
+        self.assertAlmostEqual((a * a.conjugate() + b * b.conjugate() - 1).l2_norm(), 0, delta=10 * bd.machine_threshold())
 
         for ak, ahk in zip(a.coeffs, [-0.274398, -0.617395, 0.0342997]):
-            self.assertAlmostEqual(ak, ahk, delta=10e-5)
+            self.assertAlmostEqual(ak, ahk, delta=1e-5)
 
         for bk, bhk in zip(b.coeffs, [0.0685994, -0.720294, 0.137199]):
-            self.assertAlmostEqual(bk, bhk, delta=10e-5)
+            self.assertAlmostEqual(bk, bhk, delta=1e-5)
 
 
 if __name__ == '__main__':

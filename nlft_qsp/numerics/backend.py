@@ -127,7 +127,7 @@ class NumericBackend:
         """Returns a list containing the N-th roots of unity, as objects of the backend."""
         raise NotImplementedError()
     
-    def fft(self, x: list[generic_complex], normalize=True):
+    def fft(self, x: list[generic_complex], normalize=False):
         """Computes the Fast Fourier Transform of the given list of complex numbers.
         The list is padded to the next power of two.
         
@@ -135,7 +135,7 @@ class NumericBackend:
             normalize (bool): whether the result should be divided by the length of the vector."""
         raise NotImplementedError()
     
-    def ifft(self, x: list[generic_complex], normalize=False):
+    def ifft(self, x: list[generic_complex], normalize=True):
         """Computes the Inverse Fast Fourier Transform of the given list of complex numbers.
         The list is padded to the next power of two.
         
@@ -147,11 +147,29 @@ class NumericBackend:
         """Constructs an object of the backend representing a matrix with the given list (of lists) of coefficients."""
         raise NotImplementedError()
     
+    def transpose(self, x):
+        """Returns the transpose of the given matrix. Both input and output are given as objects of the backend."""
+        raise NotImplementedError()
+    
+    def conj_transpose(self, x):
+        """Returns the conjugate transpose of the given matrix. Both input and output are given as objects of the backend."""
+        raise NotImplementedError()
+    
     def zeros(self, m: int, n: int):
         """Constructs a `m x n` zero matrix, as an object of the backend."""
+        raise NotImplementedError()
+    
+    def eye(self, n: int):
+        """Construct the `n x n` identity matrix as an object of the backend."""
         raise NotImplementedError()
     
     def solve_system(self, A, b):
         """Solves the linear system `Ax = b` and returns x as a list.
         The list may be returned as an object of the backend."""
         raise NotImplementedError()
+    
+    def qr_decomp(self, A):
+        """Decomposes A = QR, where Q is unitary and R is upper triangular.
+        The matrix in input, as well as the two outputs, are given as objects of the backend."""
+        raise NotImplementedError()
+    
