@@ -37,7 +37,7 @@ class NumpyBackend(NumericBackend):
         if dtype is None:
             dtype = select_largest_dtype()
         
-        print('NumPy backend: chosen dtype: %s' % (dtype.__name__))
+        print('NumpyBackend -- chosen dtype: %s' % (dtype.__name__))
 
         self.dtype = dtype
         self.ftype = np.finfo(dtype).dtype

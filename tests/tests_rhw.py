@@ -46,6 +46,8 @@ class RHWTestCase(unittest.TestCase):
 
         B = np.matrix(riemann_hilbert.toeplitz(c, 0))
         K = np.eye(16) + B @ B.H
+        for k in range(16): # just to suppress the annoying ComplexWarning
+            K[k, k] = np.real(K[k, k])
 
         L2, _, perm = sp.linalg.ldl(K)
         L2 = L2[perm, :]
