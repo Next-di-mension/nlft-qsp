@@ -42,6 +42,9 @@ class NumpyBackend(NumericBackend):
         self.dtype = dtype
         self.ftype = np.finfo(dtype).dtype
 
+    def __getattr__(self, item): # redirect any other function to numpy
+        return getattr(np, item)
+
     @property
     def pi(self):
         return np.pi
@@ -69,23 +72,16 @@ class NumpyBackend(NumericBackend):
     def make_float(self, x: generic_real):
         return self.ftype(x)
 
-    def abs(self, x: generic_complex):
-        return np.abs(x)
-    
     def abs2(self, x: generic_complex):
         return np.real(x) ** 2 + np.imag(x) ** 2
     
-    def sqrt(self, x: generic_complex):
-        return np.sqrt(x)
+    def re(self, x: generic_complex):
+        """Returns the real part of the given complex number."""
+        raise np.real(x)
     
-    def log(self, x: generic_complex):
-        return np.log(x)
-    
-    def exp(self, x: generic_complex):
-        return np.exp(x)
-    
-    def conj(self, x: generic_complex):
-        return np.conj(x)
+    def im(self, x: generic_complex):
+        """Returns the imaginary part of the given complex number."""
+        raise np.imag(x)
     
     def unitroots(self, N: int):
         return [np.exp(2j*np.pi*k/N) for k in range(N)]

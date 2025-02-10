@@ -21,6 +21,9 @@ class MPMathBackend(NumericBackend):
         """
         self.ctx = ctx
 
+    def __getattr__(self, item): # redirect any other function to the mpmath context
+        return getattr(self.ctx, item)
+
     @property
     def pi(self):
         return self.ctx.pi
@@ -58,17 +61,8 @@ class MPMathBackend(NumericBackend):
     def abs2(self, x: generic_complex):
         return self.ctx.re(x)**2 + self.ctx.im(x)**2
     
-    def sqrt(self, x: generic_complex):
-        return self.ctx.sqrt(x)
-    
-    def log(self, x: generic_complex):
-        return self.ctx.log(x)
-    
-    def exp(self, x: generic_complex):
-        return self.ctx.exp(x)
-    
-    def conj(self, x: generic_complex):
-        return self.ctx.conj(x)
+    def arctan(self, x: generic_complex):
+        return self.ctx.atan(x)
     
     def unitroots(self, N: int):
         return self.ctx.unitroots(N)

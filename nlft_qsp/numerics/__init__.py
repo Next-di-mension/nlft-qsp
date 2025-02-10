@@ -129,6 +129,30 @@ def log(x):
 def exp(x):
     """Returns the exponential of the given complex number."""
     return __bd_wrapper.bd.exp(x)
+
+def sin(x):
+    """Returns the sine of the given complex number."""
+    return __bd_wrapper.bd.sin(x)
+
+def cos(x):
+    """Returns the cosine of the given complex number."""
+    return __bd_wrapper.bd.cos(x)
+
+def tan(x):
+    """Returns the tangent of the given complex number."""
+    return __bd_wrapper.bd.tan(x)
+
+def arctan(x):
+    """Returns the arctangent of the given complex number."""
+    return __bd_wrapper.bd.arctan(x)
+
+def re(x):
+    """Returns the real part of the given complex number."""
+    return __bd_wrapper.bd.re(x)
+
+def im(x):
+    """Returns the imaginary part of the given complex number."""
+    return __bd_wrapper.bd.im(x)
     
 def conj(x):
     """Returns the conjugate of the given complex number."""
