@@ -24,7 +24,6 @@ class MPMathBackend(NumericBackend):
     def __getattr__(self, item): # redirect any other function to the mpmath context
         return getattr(self.ctx, item)
 
-    @property
     def pi(self):
         return self.ctx.pi
 

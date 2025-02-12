@@ -46,11 +46,8 @@ def coeffs_pad(c: list, N: int):
     return c
 
 
-
-
-@property
 def pi():
-    return __bd_wrapper.bd.pi
+    return __bd_wrapper.bd.pi()
 
 def machine_eps():
     """Returns the machine epsilon, as a float object of the backend."""
@@ -157,6 +154,10 @@ def im(x):
 def conj(x):
     """Returns the conjugate of the given complex number."""
     return __bd_wrapper.bd.conj(x)
+
+def arg(x):
+    """Returns the argument of the given complex number, between -pi and pi."""
+    return __bd_wrapper.bd.arg(x)
     
 def unitroots(N: int):
     """Returns a list containing the N-th roots of unity, as objects of the backend."""

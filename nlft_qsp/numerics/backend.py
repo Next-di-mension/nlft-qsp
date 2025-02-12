@@ -37,7 +37,6 @@ class NumericBackend:
     can benefit from either arbitrary precision arithmetic, or fast, hardware accelerated
     fixed-precision arithmetic."""
 
-    @property
     def pi(self):
         return 3.14
 

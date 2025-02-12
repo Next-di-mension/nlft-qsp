@@ -40,7 +40,6 @@ class NumpyBackend(NumericBackend):
     def __getattr__(self, item): # redirect any other function to numpy
         return getattr(np, item)
 
-    @property
     def pi(self):
         return np.pi
 
@@ -63,7 +62,7 @@ class NumpyBackend(NumericBackend):
 
     def make_complex(self, x: generic_complex):
         return self.dtype(x)
-    
+
     def make_float(self, x: generic_real):
         return self.ftype(x)
 
@@ -71,12 +70,13 @@ class NumpyBackend(NumericBackend):
         return np.real(x) ** 2 + np.imag(x) ** 2
     
     def re(self, x: generic_complex):
-        """Returns the real part of the given complex number."""
-        raise np.real(x)
+        return np.real(x)
     
     def im(self, x: generic_complex):
-        """Returns the imaginary part of the given complex number."""
-        raise np.imag(x)
+        return np.imag(x)
+    
+    def arg(self, x: generic_complex):
+        return np.angle(x) # TODO this only works with float64
     
     def unitroots(self, N: int):
         return [np.exp(2j*np.pi*k/N) for k in range(N)]
