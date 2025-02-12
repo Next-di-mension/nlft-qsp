@@ -7,15 +7,16 @@ from numerics.backend import generic_complex, generic_real
 
 from util import next_power_of_two
 
-def select_largest_dtype():
+def select_largest_dtypes():
     """Select the largest dtype available in the platform."""
-    dtypes = ['complex512', 'complex256', 'complex192', 'complex160', 'complex128']
+    ctypes = ['complex512', 'complex256', 'complex192', 'complex160', 'complex128']
+    ftypes = ['float256', 'float128', 'float96', 'float80', 'float64']
 
-    for t in dtypes:
-        if hasattr(np, t):
-            return getattr(np, t)
-        
-    return complex
+    for ct, ft in zip(ctypes, ftypes):
+        if hasattr(np, ct):
+            return getattr(np, ct), getattr(np, ft)
+    
+    return complex, float
 
 
 class NumpyBackend(NumericBackend):
@@ -26,21 +27,15 @@ class NumpyBackend(NumericBackend):
         but it gives poor precision.
     """
 
-    def __init__(self, dtype=None):
-        """Initializes a numpy backend interface with the given numpy data type.
-        
-        Args:
-            dtype: The numpy data type to use. If none is specified, the biggest available data type will be chosen.
-            If the platform allows for bigger data types, such as `complex192`, `complex256`, or `complex512`,
-            they should be used instead.
+    def __init__(self):
+        """Initializes a numpy backend.
         """
-        if dtype is None:
-            dtype = select_largest_dtype()
+        dtype, ftype = select_largest_dtypes()
         
-        print('NumpyBackend -- chosen dtype: %s' % (dtype.__name__))
+        print('NumpyBackend -- chosen dtypes: %s, %s' % (dtype.__name__, ftype.__name__))
 
         self.dtype = dtype
-        self.ftype = np.finfo(dtype).dtype
+        self.ftype = ftype
 
     def __getattr__(self, item): # redirect any other function to numpy
         return getattr(np, item)
