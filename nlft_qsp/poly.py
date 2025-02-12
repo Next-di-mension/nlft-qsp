@@ -114,6 +114,10 @@ class Polynomial(ComplexL0Sequence):
             Polynomial: A new Polynomial instance with the same coefficients and support.
         """
         return Polynomial(self.coeffs, self.support_start)
+    
+    def shift(self, k: int):
+        """Creates a new polynomial equal to the current one, multiplied by `z^k`."""
+        return Polynomial(self.coeffs, self.support_start + k)
 
     def effective_degree(self) -> int:
         """Returns the size of the support of the polynomial minus 1 (max degree - min degree).
