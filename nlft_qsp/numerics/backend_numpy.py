@@ -47,7 +47,7 @@ class NumpyBackend(NumericBackend):
         return np.finfo(self.dtype).eps
     
     def machine_threshold(self):
-        return 100 * np.finfo(self.dtype).eps
+        return 1e-8
     
     def chop(self, x: generic_complex):
         thr = self.machine_threshold()
