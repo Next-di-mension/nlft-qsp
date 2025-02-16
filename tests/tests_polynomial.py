@@ -105,7 +105,7 @@ class PolynomialTestCase(unittest.TestCase):
 
     @bd.workdps(30)
     def test_eval_at_roots_of_unity(self):
-        seq = random_sequence(16, 6)
+        seq = random_sequence(160000, 15)
 
         p = Polynomial(seq, support_start=0)
         q = Polynomial(seq, support_start=2)

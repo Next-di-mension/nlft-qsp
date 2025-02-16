@@ -250,11 +250,15 @@ class Polynomial(ComplexL0Sequence):
             list[complex]: List of evaluations at the N-th roots of unity.
             The k-th element will be `self[w^k]`, where `w` is the main N-th root of unity.
         """
-        coeffs = coeffs_pad(self.coeffs, next_power_of_two(N))
-        coeffs = sequence_shift(coeffs, -self.support_start)
+        N = next_power_of_two(N)
+        M = next_power_of_two(max(N, len(self.coeffs)))
+
+        coeffs = coeffs_pad(self.coeffs, M)
+        coeffs = sequence_shift(coeffs, self.support_start)
         # This has the effect of having everything multiplied by z^s
 
-        return bd.ifft(coeffs, normalize=False)
+        evals = bd.ifft(coeffs, normalize=False) # M evaluations at the M-th roots of unity
+        return evals[::M//N]
     
     def sup_norm(self, N=1024):
         """Estimates the supremum norm of the polynomial over the unit circle
