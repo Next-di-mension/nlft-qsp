@@ -4,10 +4,11 @@ import unittest
 import numpy as np
 import scipy as sp
 
-from tests import random_polynomial
+from nlft import NonLinearFourierSequence
+from rand import random_polynomial, random_sequence
 
-import nlft_qsp.numerics as bd
-from nlft_qsp import riemann_hilbert, weiss
+import numerics as bd
+import riemann_hilbert, weiss
 
 
 class RHWTestCase(unittest.TestCase):

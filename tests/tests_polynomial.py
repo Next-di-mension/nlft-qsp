@@ -1,10 +1,10 @@
 
 import unittest
 
-from tests import random_sequence
+from rand import random_sequence
 
-import nlft_qsp.numerics as bd
-from nlft_qsp.nlft import NonLinearFourierSequence, Polynomial
+import numerics as bd
+from nlft import NonLinearFourierSequence, Polynomial
 
 
 class PolynomialTestCase(unittest.TestCase):

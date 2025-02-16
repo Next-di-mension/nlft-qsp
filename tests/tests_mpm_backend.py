@@ -1,11 +1,11 @@
 
 import unittest
 
-from tests import random_sequence
+from rand import random_sequence
 
 import mpmath as mp
 
-from nlft_qsp.numerics.backend_mpmath import MPMathBackend
+from numerics.backend_mpmath import MPMathBackend
 
 bd = MPMathBackend(mp.mp)
 
