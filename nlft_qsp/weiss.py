@@ -62,7 +62,7 @@ def weiss_internal(b: Polynomial, compute_ratio=False, verbose=False):
 
         new_thr = (a * a.conjugate() + b * b.conjugate() - 1).l2_norm()
         if verbose:
-            print(f"N = {N:>7}, threshold = {threshold}")
+            print(f"N = {N:>7}, threshold = {new_thr}")
 
         if threshold <= new_thr:
             attempts += 1
