@@ -4,6 +4,15 @@ import numerics as bd
 from poly import Polynomial
 from util import next_power_of_two, sequence_shift
 
+WEISS_MAX_ATTEMPTS = 3
+
+class WeissConvergenceError(Exception):
+    """This error is thrown where Weiss' algorithm does not converge, more precisely,
+    when the error in Weiss' algorithm does not improve after `WEISS_MAX_ATTEMPTS` steps."""
+
+    def __init__(self, *args):
+        super().__init__(*args)
+
 
 def laurent_approximation(points: list) -> Polynomial:
     r"""Returns a Laurent polynomial passing through the given points.
@@ -35,10 +44,12 @@ def weiss_internal(b: Polynomial, compute_ratio=False, verbose=False):
     Returns:
         Polynomial: A polynomial :math:`a(z)` satisfying :math:`|a|^2 + |b|^2 = 1` on the unit circle (up to working precision). If `compute_ratio=True`, a second polynomial :math:`c(z)` that approximates :math:`b/a` is returned.
     """
-    N = 8*next_power_of_two(b.effective_degree()) # Exponential search on N
+    N = 4*next_power_of_two(b.effective_degree()) # Exponential search on N
     threshold = 1
-
+    attempts = 0
     while threshold > 10 * bd.machine_eps():
+        N *= 2
+
         b_points = b.eval_at_roots_of_unity(N)
 
         R = laurent_approximation([bd.log(1 - bd.abs2(bz))/2 for bz in b_points])
@@ -49,12 +60,17 @@ def weiss_internal(b: Polynomial, compute_ratio=False, verbose=False):
         a = laurent_approximation([bd.exp(gz) for gz in G_points])
         a = a.truncate(-b.effective_degree(), 0) # a and b must have the same support
 
-        threshold = (a * a.conjugate() + b * b.conjugate() - 1).l2_norm()
-
+        new_thr = (a * a.conjugate() + b * b.conjugate() - 1).l2_norm()
         if verbose:
             print(f"N = {N:>7}, threshold = {threshold}")
 
-        N *= 2
+        if threshold <= new_thr:
+            attempts += 1
+            if attempts >= WEISS_MAX_ATTEMPTS:
+                raise WeissConvergenceError()
+        else:
+            threshold = new_thr
+            attempts = 0
 
     if compute_ratio:
         c = laurent_approximation([bz * bd.exp(-gz) for bz, gz in zip(b_points, G_points)])
