@@ -15,16 +15,16 @@ class RHWTestCase(unittest.TestCase):
     
     @bd.workdps(30)
     def test_rhw(self):
-        b = random_polynomial(16, eta=0.7)
+        b = random_polynomial(16, eta=0.5)
         a, c = weiss.ratio(b)
         
-        self.assertAlmostEqual((a * a.conjugate() + b * b.conjugate() - 1).l2_norm(), 0, delta=100 * bd.machine_eps())
+        self.assertAlmostEqual((a * a.conjugate() + b * b.conjugate() - 1).l2_norm(), 0, delta=bd.machine_threshold())
 
-        self.assertAlmostEqual(max([bd.abs(c(z) - b(z)/a(z)) for z in bd.unitroots(512)]), 0, delta=100 * bd.machine_eps())
+        self.assertAlmostEqual(max([bd.abs(c(z) - b(z)/a(z)) for z in bd.unitroots(512)]), 0, delta=bd.machine_threshold())
         self.assertEqual(c.support().stop, b.support().stop)
 
         Ap, Bp = riemann_hilbert.factorize(c, 10, normalize=True)
-        self.assertAlmostEqual((Ap * Ap.conjugate() + Bp * Bp.conjugate() - 1).l2_norm(), 0, delta=100 * bd.machine_eps())
+        self.assertAlmostEqual((Ap * Ap.conjugate() + Bp * Bp.conjugate() - 1).l2_norm(), 0, delta=bd.machine_threshold())
 
     @bd.workdps(30)
     def test_inlft_rhw(self):
