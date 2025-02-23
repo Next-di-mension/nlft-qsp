@@ -182,6 +182,10 @@ def ifft(x: list, normalize=True):
 def matrix(x: list):
     """Constructs an object of the backend representing a matrix with the given list (of lists) of coefficients."""
     return __bd_wrapper.bd.matrix(x)
+
+def to_list(x):
+    """Returns the matrix given as an object of the backend as a Python list, containing objects of the backend."""
+    return __bd_wrapper.bd.to_list(x)
     
 def transpose(x):
     """Returns the transpose of the given matrix. Both input and output are given as objects of the backend."""

@@ -31,7 +31,7 @@ class MPMathBackend(NumericBackend):
         return 10 ** (-self.ctx.dps)
     
     def machine_threshold(self):
-        return 10 ** (-self.ctx.dps+2)
+        return 10 ** (-self.ctx.dps//2)
     
     def workdps(self, x: int):
         return self.ctx.workdps(x)
@@ -106,6 +106,9 @@ class MPMathBackend(NumericBackend):
     def matrix(self, x: list):
         return self.ctx.matrix(x)
     
+    def to_list(self, x):
+        return x.tolist()
+    
     def transpose(self, x):
         return x.transpose()
     
@@ -122,4 +125,13 @@ class MPMathBackend(NumericBackend):
         return self.ctx.lu_solve(A, b)
     
     def qr_decomp(self, A):
-        raise NotImplementedError("QR factorization for mpmath backend is not implemented yet.")
+        if A.rows >= A.cols:
+            return self.ctx.qr(A)
+        
+        A1 = A[:A.rows, :A.rows]
+        Q, R1 = self.ctx.qr(A1)
+        R2 = Q.H * A[:A.rows, A.rows:]
+
+        return Q, self.ctx.matrix([
+            [R1[k, j] for j in range(R1.cols)] + [R2[k, j] for j in range(R2.cols)] for k in range(R1.rows)
+        ])

@@ -112,6 +112,9 @@ class NumpyBackend(NumericBackend):
     def matrix(self, x: list):
         return np.matrix(x, dtype=self.dtype)
     
+    def to_list(self, x):
+        return x.tolist()
+    
     def transpose(self, x):
         return np.transpose(x)
     
