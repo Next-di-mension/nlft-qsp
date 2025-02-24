@@ -87,6 +87,14 @@ class ComplexL0Sequence:
             float: The squared l2 norm, i.e., the sum of the squared absolute values.
         """
         return sum(bd.abs2(c) for c in self.coeffs)
+    
+    def is_real(self) -> bool:
+        """Whether the sequence has only real elements."""
+        return all(bd.im(F) <= bd.machine_threshold() for F in self.coeffs)
+    
+    def is_imaginary(self) -> bool:
+        """Whether the sequence has only imaginary elements."""
+        return all(bd.re(F) <= bd.machine_threshold() for F in self.coeffs)
 
 
 
