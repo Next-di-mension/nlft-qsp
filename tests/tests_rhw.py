@@ -56,7 +56,6 @@ class RHWTestCase(unittest.TestCase):
 
         self.assertAlmostEqual(np.linalg.norm(L - L2), 0, delta=1e-5)
 
-
     @bd.workdps(30)
     def test_inlft_rhw_hc(self):
         b = random_polynomial(16, eta=0.5)
