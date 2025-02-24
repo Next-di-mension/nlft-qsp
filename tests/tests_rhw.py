@@ -43,9 +43,10 @@ class RHWTestCase(unittest.TestCase):
         e0 = [1] + [0] * 15
 
         L = riemann_hilbert.half_cholesky_ldl(e0, reversed(c.coeffs))
-        L = np.matrix(L) # we force numpy/scipy for this test, but L is computed with bd.
+        L = np.matrix(bd.to_list(L), dtype=np.complex128)
+        # we force numpy/scipy for this test, but L is computed with bd.
 
-        B = np.matrix(riemann_hilbert.toeplitz(c, 0))
+        B = np.matrix(bd.to_list(riemann_hilbert.toeplitz(c, 0)), dtype=np.complex128)
         K = np.eye(16) + B @ B.H
         for k in range(16): # just to suppress the annoying ComplexWarning
             K[k, k] = np.real(K[k, k])
