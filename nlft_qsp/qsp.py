@@ -8,6 +8,46 @@ from numerics.backend import generic_real, generic_complex
 import riemann_hilbert, weiss
 
 
+def analytic_to_laurent(P: Polynomial, n: int = -1) -> Polynomial:
+    """Converts the given polynomial `p[0] + p[1] z + ... + p[n] z^n` into a definite-parity Laurent polynomial `p[0] z^(-n) + p[1] z^(-n+2) + ... + p[n] z^n`. If n is not given, then the degree of P will be considered.
+    
+    Note:
+        No check is done on whether P is actually analytic, any negative-degree coefficients are not considered."""
+    if n < 0:
+        n = P.support().stop - 1
+
+    Pl = Polynomial([0], support_start=-n)
+    for k in range(n+1):
+        Pl[2*k - n] = P[k]
+    
+    return Pl
+
+def laurent_to_analytic(P: Polynomial, n: int = -1) -> Polynomial:
+    """Converts the given definite-parity Laurent polynomial `p[0] z^(-n) + p[1] z^(-n+2) + ... + p[n] z^n` into an analytic polynomial `p[0] + p[1] z + ... + p[n] z^n`. If n is not given, then n = the Laurent degree of P.
+    
+    Note:
+        No check is done on whether P is of definite-parity, and the other coefficients are not considered.
+    """
+    if n < 0:
+        n = max(abs(P.support().start), abs(P.support().stop - 1))
+    
+    return Polynomial([P[2*k - n] for k in range(n+1)])
+
+def is_definite_parity(P: Polynomial, n: int = -1) -> bool:
+    """Returns whether the polynomial has the parity of n. If n is not defined, then n = index of last coefficient of P."""
+    if n < 0:
+        n = P.support().stop - 1
+
+    for k in P.support():
+        if (k - n) % 2 != 0 and abs(P[k]) > bd.machine_threshold():
+            return False
+
+    return True
+
+def chebyshev_to_laurent(c: list[generic_complex]) -> Polynomial:
+    """Returns the Laurent polynomial equivalent to the Chebyshev expansion."""
+    return Polynomial(reversed(c[1:]) + c, support_start=len(c)-1)
+
 
 def phase_prefactor(F: generic_complex) -> generic_real:
     """Computes the phase prefactor for the Fourier sequence coefficient F."""
@@ -111,8 +151,7 @@ class PhaseFactors:
         if mode == 'analytic': # convert from Laurent to analytic picture
             Pl, Ql = self.polynomials_bounds(inf, sup)
 
-            n = Pl.support().stop - 1
-            return Polynomial([Pl[2*k - n] for k in range(n+1)]), Polynomial([Ql[2*k - n] for k in range(n+1)])
+            return laurent_to_analytic(Pl), laurent_to_analytic(Ql)
         else:
             return self.polynomials_bounds(inf, sup)
     
@@ -249,7 +288,7 @@ def gqsp_solve(P: Polynomial, mode='qsp') -> PhaseFactors:
     match mode:
         case "qsp":
             P = -1j * Polynomial(P.coeffs, 0)
-            # We want to produce (Q, i P), and then multiply the QSP protocol by iX on the right.
+            # We want to produce (Q, -i P), and then multiply the QSP protocol by iX on the right.
         case "nlft":
             P = Polynomial(P.coeffs, 0)
         case _:
@@ -278,6 +317,42 @@ def xqsp_solve(P: Polynomial, mode='qsp') -> PhaseFactors:
         The sup norm of P should be bounded by :math:`1 - \eta < 1`.
         The time required by the algorithm to compute the phase factors will scale with :math:`1/\eta`.
         
-        The support_start of P will be ignored."""
-    
+        The support_start of P will be ignored. This is a solver for analytic QSP. In order to obtain phase factors for Laurent XQSP, use `xqsp_solve_laurent`."""
     return gqsp_solve(P, mode=mode).to_xqsp()
+
+def xqsp_solve_laurent(P: Polynomial, mode='qsp') -> PhaseFactors:
+    r"""Returns the set of phase factors for a X-constrained QSP protocol producing the given definite-parity polynomial. A complementary Q will be computed with Weiss' algorithm.
+
+    Args:
+        mode (str): Whether the phase factors should produce (P, Q) (`'qsp'`), or (Q, P) (`'nlft'`).
+
+    Raises:
+        ValueError: If P does not lie in the X-constrained subalgebra or P has not definite-parity.
+    
+    Note:
+        The sup norm of P should be bounded by :math:`1 - \eta < 1`.
+        The time required by the algorithm to compute the phase factors will scale with :math:`1/\eta`.
+        
+        The support_start of P will be ignored. In order to obtain phase factors for Laurent XQSP, first convert the polynomial into analytic form."""
+    if not is_definite_parity(P):
+        raise ValueError("Laurent polynomial is not of definite parity.")
+    
+    return xqsp_solve(laurent_to_analytic(P), mode=mode)
+
+def chebqsp_solve(c: list[generic_complex]) -> PhaseFactors:
+    """Returns the set of phase factors for a Chebyshev QSP protocol implementing the polynomial `P(x)`.
+
+    The target polynomial will be `P(x) = c[0] + c[1] T_1(x) + c[2] T_2(x) + ... + c[n] T_n(x)`, where `T_k` are the Chebyshev polynomials of the first kind.
+    
+    Args:
+        c (list[complex]): the list of coefficients of `P(x)` in the Chebyshev basis.
+        
+    Raises:
+        ValueError: If the target polynomial does not have definite parity or is not real."""
+    if any(bd.im(ck) > bd.machine_threshold() for ck in c):
+        raise ValueError("Only real polynomials are supported.")
+
+    P = chebyshev_to_laurent(c)
+    HP = (P + P.conjugate())/2
+
+    return xqsp_solve_laurent(HP)
