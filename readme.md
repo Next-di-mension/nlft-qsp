@@ -10,7 +10,7 @@ quantum signal processing for arbitrary Szegö functions*, [arXiv:2407.05634](ht
 
 - Hongkang Ni and Lexing Ying. *Fast Phase Factor Finding for Quantum Signal Processing* (2024), [arXiv:2410.06409](https://arxiv.org/abs/2410.06409).
 
-- Lorenzo Laneve. *Generalized Quantum Signal Processing and Non-Linear Fourier Transform are equivalent*, (to appear on arXiv).
+- Lorenzo Laneve. *Generalized Quantum Signal Processing and Non-Linear Fourier Transform are equivalent*, [arXiv:2503.03026](https://arxiv.org/abs/2503.03026).
 
 ## How to use the package
 
