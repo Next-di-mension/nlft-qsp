@@ -109,6 +109,12 @@ class NumpyBackend(NumericBackend):
 
         return np.fft.ifft(np.array(x), norm=norm).tolist()
     
+    def fft_md(self, x: list, normalize=False):
+        raise NotImplementedError()
+    
+    def ifft_md(self, x: list, normalize=True):
+        raise NotImplementedError()
+    
     def matrix(self, x: list):
         return np.matrix(x, dtype=self.dtype)
     
