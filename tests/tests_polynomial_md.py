@@ -3,7 +3,7 @@ import unittest
 
 import numerics as bd
 
-from poly import PolynomialMD
+from poly_md import PolynomialMD
 
 
 class PolynomialMDTestCase(unittest.TestCase):
