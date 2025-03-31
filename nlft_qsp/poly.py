@@ -334,6 +334,21 @@ def deep_inplace(l, func, reverse=False):
             for il in l:
                 deep_inplace(il, func, reverse)
 
+def deep_truncate(l, lens):
+    """Returns the same multidimensional list truncates to the given lengths in each axis.
+
+    Note:
+        It is assumed that l has dimensions >= lens.
+    
+    Args:
+        lens (tuple[int])"""
+    if len(lens) > 1:
+        ilens = lens[1:]
+        return [deep_truncate(l[k], ilens) for k in range(lens[0])]
+    
+    return l[:lens[0]]
+
+
 def deep_inplace_binary(l1, l2, func):
     """Applies the binary function to each element of the given nested lists, in place (they are assumed to be of the same dimension)."""
     if isinstance(l1, list) and len(l1) != 0:
@@ -601,3 +616,39 @@ class PolynomialMD(ComplexL0SequenceMD):
         deep_inplace(cf, lambda x: bd.conj(x), reverse=True)
 
         return PolynomialMD(cf, tuple(-rng.stop + 1 for rng in self.support()))
+    
+    def __mul__(self, other):
+        if isinstance(other, Number):
+            return self._coeffwise_unary(lambda x: x * other)
+        elif not isinstance(other, PolynomialMD):
+            raise TypeError("Polynomial addition admits only other polynomials or scalars.")
+        
+        sup_a = self.support()
+        sup_b = other.support()
+
+        len_a = tuple(x.stop - x.start for x in sup_a)
+        len_b = tuple(x.stop - x.start for x in sup_b)
+        len_c = tuple(la + lb - 1 for la, lb in zip(len_a, len_b))
+
+        rng_a = tuple(range(xa.start, xa.start + next_power_of_two(xc)) for xa, xc in zip(sup_a, len_c))
+        rng_b = tuple(range(xb.start, xb.start + next_power_of_two(xc)) for xb, xc in zip(sup_b, len_c))
+        # augmented support for a and b so that we can carry out FFT on their coeff_list()
+
+        # TODO use extra precision here
+        cf1 = bd.fft_md(self.coeff_list(rng_a))
+        cf2 = bd.fft_md(other.coeff_list(rng_b))
+
+        # Multiply in the Fourier domain
+        deep_inplace_binary(cf1, cf2, lambda x, y: x * y) # cf1 *= cf2
+
+        # Inverse FFT to get the result, support starts are the sum in each individual variable
+        return PolynomialMD(deep_truncate(bd.ifft_md(cf1), len_c), tuple(x.start + y.start for x, y in zip(sup_a, sup_b)))
+    
+    def __rmul__(self, other):
+        return self * other
+    
+    def __truediv__(self, other):
+        if isinstance(other, Number):
+            return self._coeffwise_unary(lambda x: x / other)
+        
+        raise TypeError("Polynomial division is only possible with scalars.")

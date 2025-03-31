@@ -109,11 +109,21 @@ class NumpyBackend(NumericBackend):
 
         return np.fft.ifft(np.array(x), norm=norm).tolist()
     
-    def fft_md(self, x: list, normalize=False):
-        raise NotImplementedError()
+    def fft_md(self, x: list, shape: tuple=None, normalize=False):
+        if normalize:
+            norm = 'forward'
+        else:
+            norm = 'backward'
+
+        return np.fft.fftn(np.array(x), shape, norm=norm).tolist()
     
-    def ifft_md(self, x: list, normalize=True):
-        raise NotImplementedError()
+    def ifft_md(self, x: list, shape: tuple=None, normalize=True):
+        if normalize:
+            norm = 'backward'
+        else:
+            norm = 'forward'
+
+        return np.fft.ifftn(np.array(x), shape, norm=norm).tolist()
     
     def matrix(self, x: list):
         return np.matrix(x, dtype=self.dtype)

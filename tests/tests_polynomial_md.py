@@ -1,6 +1,8 @@
 
 import unittest
 
+import numerics as bd
+
 from poly import PolynomialMD
 
 
@@ -123,16 +125,44 @@ class PolynomialMDTestCase(unittest.TestCase):
                          [[1,   2,   3, 0],
                           [4, 5+7, 6+8, 9],
                           [0, 1,     3, 6]])
+        self.assertAlmostEqual(((p+q) - (q+p)).l2_norm(), 0, delta=bd.machine_threshold())
         
         self.assertEqual((p-q).coeff_list(),
                          [[1,   2,   3,  0],
                           [4, 5-7, 6-8, -9],
                           [0,  -1,  -3, -6]])
+        self.assertAlmostEqual(((p-q) + (q-p)).l2_norm(), 0, delta=bd.machine_threshold())
         
         self.assertEqual((q+35).coeff_list(),
                          [[35, 0, 0, 0],
                           [0,  7, 8, 9],
                           [0,  1, 3, 6]])
+        
+    def test_mul(self):
+        p = PolynomialMD([[0, 1], [1, 0]], support_start=(0,0)) # x + y
+        q = PolynomialMD([[0, 1], [-1, 0]], support_start=(1,0)) # x^2 - xy
+
+        r = p*q
+        self.assertEqual(r.support_start, (1,0))
+        self.assertEqual(r.coeff_list(), [
+            [0, 0, 1],
+            [0, 0, 0],
+            [-1, 0, 0]
+        ])
+
+        p = PolynomialMD([[0, 1], [1, 7]], support_start=(0,3)) # y^3 (x + y + 7xy)
+        q = PolynomialMD([[0, 1], [-1, 0]], support_start=(1,0)) # x^2 - xy
+        # x y^3 (x + y + 7xy) (x - y) = x y^3 (x^2 - y^2 + 7x^2 y - 7xy^2)
+        
+        r = p*q
+        self.assertEqual(r.support_start, (1,3))
+        self.assertEqual(r.coeff_list(), [
+            [0, 0, 1],
+            [0, 0, 7],
+            [-1, -7, 0]
+        ])
+
+
         
 
         
