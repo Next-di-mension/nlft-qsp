@@ -1,10 +1,12 @@
 
+from math import prod
 from numbers import Number
+from typing import Iterable
 
 import numerics as bd
 from numerics.backend import generic_complex, generic_real
 
-from util import next_power_of_two
+from util import flatten, next_power_of_two, sequence_shift
 
 def minimal_covering_range(l):
     """Given a list of tuples `l` containing `range` objects, returns a tuple `t` containing `range`
@@ -22,19 +24,6 @@ def minimal_covering_range(l):
         for col in zip(*[t + (None,) * (N - len(t)) for t in l])
     )
 
-def deep_inplace(l, func, reverse=False):
-    """Applies the function to each element of the given nested list, in place."""
-    if isinstance(l, list) and len(l) != 0:
-        if reverse:
-            l.reverse()
-
-        if isinstance(l[0], Number):
-            for k in range(len(l)):
-                l[k] = func(l[k])
-        else:
-            for il in l:
-                deep_inplace(il, func, reverse)
-
 def deep_truncate(l, lens):
     """Returns the same multidimensional list truncates to the given lengths in each axis.
 
@@ -49,6 +38,50 @@ def deep_truncate(l, lens):
     
     return l[:lens[0]]
 
+def deep_horner_eval(l, z: tuple[generic_complex]):
+    """Evaluates the multivariate polynomial with coefficients l using Horner's method."""
+    if len(z) == 0:
+        return l
+    
+    evals = [deep_horner_eval(il, z[1:]) for il in l]
+    
+    res = evals[-1]
+    for k in reversed(range(len(evals) - 1)):
+        res = res * z[0] + evals[k]
+
+    return res
+
+def deep_sequence_shift(l, s: tuple[int]):
+    """Cyclically shifts the elements along each axis, where k-th axis is shifted by k."""
+    if isinstance(l, list) and len(l) != 0:
+        if isinstance(l[0], Number):
+            return sequence_shift(l, s[0])
+    
+    s1 = s[1:]
+    return sequence_shift([deep_sequence_shift(il, s1) for il in l], s[0])
+
+def deep_sequence_skip(l, s: tuple[int]):
+    """Takes only every `s[k]` element of the list in each axis, the equivalent of l[::s] in multiple dimensions."""
+    if isinstance(l, list) and len(l) != 0:
+        if isinstance(l[0], Number):
+            return l[::s[0]]
+    
+    s1 = s[1:]
+    l = l[::s[0]]
+    return [deep_sequence_skip(il, s1) for il in l]
+
+def deep_inplace(l, func, reverse=False):
+    """Applies the function to each element of the given nested list, in place."""
+    if isinstance(l, list) and len(l) != 0:
+        if reverse:
+            l.reverse()
+
+        if isinstance(l[0], Number):
+            for k in range(len(l)):
+                l[k] = func(l[k])
+        else:
+            for il in l:
+                deep_inplace(il, func, reverse)
 
 def deep_inplace_binary(l1, l2, func):
     """Applies the binary function to each element of the given nested lists, in place (they are assumed to be of the same dimension)."""
@@ -353,3 +386,71 @@ class PolynomialMD(ComplexL0SequenceMD):
             return self._coeffwise_unary(lambda x: x / other)
         
         raise TypeError("Polynomial division is only possible with scalars.")
+    
+    def __call__(self, z) -> generic_complex:
+        """Evaluates the polynomial using Horner's method.
+
+        Args:
+            z (complex): The point at which to evaluate the polynomial.
+
+        Returns:
+            complex: The evaluated result.
+        """
+        if isinstance(z, Number):
+            z = (z,)
+        
+        if self.dim != len(z):
+            raise ValueError("Incorrect number of variables to evaluate the multivariate polynomial.")
+
+        return deep_horner_eval(self.coeff_list(), z) * prod(zk ** nk for zk, nk in zip(z, self.support_start))
+
+    def eval_at_roots_of_unity(self, N: int | tuple) -> list[generic_complex]:
+        """Evaluates the polynomial at the N-th roots of unity using the inverse FFT.
+
+        Args:
+            N (int | tuple): A power of two specifying the number of roots. If N is not a power of two, then the next power of two is taken.
+                             A tuple of appropriate dimension can be given, where the k-th variable will be computed in the `N[k]`-th roots of unity.
+
+        Returns:
+            list[complex]: List of evaluations at the N-th roots of unity.
+            The k-th element will be `self[w^k]`, where `w` is the main N-th root of unity.
+        """
+        if isinstance(N, Number):
+            N = (N,) * self.dim
+
+        if self.dim != len(N):
+            raise ValueError("The dimension of the grid must match the dimension of the polynomial.")
+
+        sup = self.support()
+
+        N = tuple(next_power_of_two(k) for k in N)
+        M = tuple(next_power_of_two(max(k, r.stop - r.start)) for k, r in zip(N, sup))
+
+        coeffs = self.coeff_list(tuple(range(r.start, r.start + k) for k, r in zip(M, sup)))
+        coeffs = deep_sequence_shift(coeffs, self.support_start)
+        # This has the effect of having everything multiplied by z[k]^s[k] for each k
+
+        evals = bd.ifft_md(coeffs, normalize=False) # M evaluations at the M-th roots of unity
+        return deep_sequence_skip(evals, tuple(m//n for m, n in zip(M, N)))
+    
+    def sup_norm(self, N=1024):
+        """Estimates the supremum norm of the polynomial over the unit multitorus.
+        
+        Args:
+            N (int, optional): the number of samples to compute the maximum from. If N is not a power of two, then the next power of two is taken.
+
+        Returns:
+            float: An estimate for the supremum norm of the polynomial over the unit circle.
+        """
+        return max([abs(x) for x in flatten(self.eval_at_roots_of_unity(N))])
+    
+    def truncate(self, rng: tuple[range]):
+        """Keeps only the coefficients in the hpyerrectangle defined by rng, discarding the others.
+
+        Args:
+            rng (tuple[range]): Lower bound of degree.
+
+        Returns:
+            PolynomialMD: A new, truncated polynomial.
+        """
+        return PolynomialMD(self.coeff_list(rng), tuple(r.start for r in rng))

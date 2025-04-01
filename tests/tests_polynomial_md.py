@@ -4,6 +4,7 @@ import unittest
 import numerics as bd
 
 from poly_md import PolynomialMD
+from rand import random_sequence
 
 
 class PolynomialMDTestCase(unittest.TestCase):
@@ -162,7 +163,43 @@ class PolynomialMDTestCase(unittest.TestCase):
             [-1, -7, 0]
         ])
 
+    def test_eval(self):
+        p = PolynomialMD([ # P(x, y) = 2x^2 + 3xy + y^2
+            [0, 0, 1],
+            [0, 3, 0],
+            [2, 0, 0]
+        ], (0,0))
+        self.assertEqual(p((1, 2)), 12)
 
+        p = PolynomialMD([ # P(x, y) = y^2(2x^2 + 3xy + y^2)
+            [0, 0, 1],
+            [0, 3, 0],
+            [2, 0, 0]
+        ], (0,2))
+        self.assertEqual(p((1, 2)), 48)
+
+        p = PolynomialMD([ # P(x, y, z) = x + yz - z^2
+            [[0, 0, -1],
+             [0, 1, 0]],
+            [[1, 0, 0],
+             [0, 0, 0]]
+        ], (0,0,0))
+        self.assertEqual(p((2, 3, 1)), 4)
+
+    def test_eval_at_roots_of_unity(self):
+        seq = random_sequence(10000, (4, 4, 4))
+
+        p = PolynomialMD(seq, (0, 0, 0))
+        q = PolynomialMD(seq, (0, 2, 1)) # q = y^2 z p
+        
+        ep = p.eval_at_roots_of_unity((6, 7, 9))
+        eq = q.eval_at_roots_of_unity((6, 7, 9))
+
+        for i, x in zip(range(8), bd.unitroots(8)):
+            for j, y in zip(range(8), bd.unitroots(8)):
+                for k, z in zip(range(16), bd.unitroots(16)):
+                    self.assertAlmostEqual(ep[i][j][k], p((x, y, z)), delta=10 * bd.machine_threshold())
+                    self.assertAlmostEqual(eq[i][j][k], q((x, y, z)), delta=10 * bd.machine_threshold())
         
 
         
