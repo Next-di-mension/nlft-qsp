@@ -1,6 +1,8 @@
 
+from math import sqrt
 import unittest
 
+from nlft_md import StairlikeSequence2D
 import numerics as bd
 
 from poly_md import PolynomialMD
@@ -200,11 +202,45 @@ class PolynomialMDTestCase(unittest.TestCase):
                 for k, z in zip(range(16), bd.unitroots(16)):
                     self.assertAlmostEqual(ep[i][j][k], p((x, y, z)), delta=10 * bd.machine_threshold())
                     self.assertAlmostEqual(eq[i][j][k], q((x, y, z)), delta=10 * bd.machine_threshold())
-        
-
-        
 
 
+class StairlikeSequence2DTestCase(unittest.TestCase):
+
+    def test_init_get(self):
+        s = StairlikeSequence2D([[1, 2], [3], [4, 5, 6], [7, 8]])
+
+        self.assertEqual(s.support_x(), range(0, 4))
+        self.assertEqual(s.support_y(), range(0, 5))
+
+        self.assertEqual(s[0,0], 1)
+        self.assertEqual(s[0,1], 2)
+        self.assertEqual(s[1,1], 3)
+        self.assertEqual(s[2,1], 4)
+        self.assertEqual(s[2,2], 5)
+        self.assertEqual(s[2,3], 6)
+        self.assertEqual(s[3,3], 7)
+        self.assertEqual(s[3,4], 8)
+
+        self.assertEqual(s[1,0], 0)
+        self.assertEqual(s[-1,0], 0)
+
+    def test_nlft_transform(self):
+        nlft = StairlikeSequence2D([[1, 2], [3], [4]])
+        a, b = nlft.transform()
+
+        self.assertAlmostEqual(a[0,0],     1/(10*sqrt(17)),  delta=10*bd.machine_threshold())
+        self.assertAlmostEqual(a[0,-1],    -1/(5*sqrt(17)),  delta=10*bd.machine_threshold())
+        self.assertAlmostEqual(a[-1,0],    -9/(5*sqrt(17)),  delta=10*bd.machine_threshold())
+        self.assertAlmostEqual(a[-1,-1],   21/(10*sqrt(17)), delta=10*bd.machine_threshold())
+        self.assertAlmostEqual(a[-2,0],    -4/(5*sqrt(17)),  delta=10*bd.machine_threshold())
+        self.assertAlmostEqual(a[-2,-1],   -2/(5*sqrt(17)),  delta=10*bd.machine_threshold())
+
+        self.assertAlmostEqual(b[0,0],     1/(10*sqrt(17)),   delta=10*bd.machine_threshold())
+        self.assertAlmostEqual(b[0,1],     1/(5*sqrt(17)),    delta=10*bd.machine_threshold())
+        self.assertAlmostEqual(b[1,0],     -9/(5*sqrt(17)),   delta=10*bd.machine_threshold())
+        self.assertAlmostEqual(b[1,1],     -21/(10*sqrt(17)), delta=10*bd.machine_threshold())
+        self.assertAlmostEqual(b[2,0],     -4/(5*sqrt(17)),   delta=10*bd.machine_threshold())
+        self.assertAlmostEqual(b[2,1],     2/(5*sqrt(17)),    delta=10*bd.machine_threshold())
 
 
 if __name__ == '__main__':

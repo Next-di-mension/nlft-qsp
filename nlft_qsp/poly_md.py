@@ -6,6 +6,7 @@ from typing import Iterable
 import numerics as bd
 from numerics.backend import generic_complex, generic_real
 
+from poly import Polynomial
 from util import flatten, next_power_of_two, sequence_shift
 
 def minimal_covering_range(l):
@@ -327,7 +328,7 @@ class PolynomialMD(ComplexL0SequenceMD):
     def shift(self, k: int, a: int=0):
         """Creates a new polynomial equal to the current one, multiplied by `z_a^k`."""
         t = self.support_start
-        t[a] += k
+        t = tuple(t[j] + (j == a) * k for j in range(len(t)))
 
         return PolynomialMD(self.coeff_list(), t)
 
@@ -445,7 +446,10 @@ class PolynomialMD(ComplexL0SequenceMD):
         return max([abs(x) for x in flatten(self.eval_at_roots_of_unity(N))])
     
     def truncate(self, rng: tuple[range]):
-        """Keeps only the coefficients in the hpyerrectangle defined by rng, discarding the others.
+        """Keeps only the coefficients in the hyperrectangle defined by rng, discarding the other.
+        
+        Note:
+            Both ends of the ranges are included.
 
         Args:
             rng (tuple[range]): Lower bound of degree.
@@ -454,3 +458,13 @@ class PolynomialMD(ComplexL0SequenceMD):
             PolynomialMD: A new, truncated polynomial.
         """
         return PolynomialMD(self.coeff_list(rng), tuple(r.start for r in rng))
+    
+
+def to_poly_md(p: Polynomial, m: int) -> PolynomialMD:
+    """Converts the given univariate polynomial P(z_m) as a m-variate polynomial object representing `P'(z_1, ..., z_m) = P(z_m)`."""
+
+    cf = p.coeffs
+    for _ in range(m-1):
+        cf = [cf]
+
+    return PolynomialMD(cf, support_start=(0,)*(m-1) + (p.support_start,))
