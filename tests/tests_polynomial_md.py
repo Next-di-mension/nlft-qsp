@@ -200,8 +200,9 @@ class PolynomialMDTestCase(unittest.TestCase):
         for i, x in zip(range(8), bd.unitroots(8)):
             for j, y in zip(range(8), bd.unitroots(8)):
                 for k, z in zip(range(16), bd.unitroots(16)):
-                    self.assertAlmostEqual(ep[i][j][k], p((x, y, z)), delta=10 * bd.machine_threshold())
-                    self.assertAlmostEqual(eq[i][j][k], q((x, y, z)), delta=10 * bd.machine_threshold())
+                    self.assertAlmostEqual(ep[i][j][k], p(x, y, z), delta=10 * bd.machine_threshold())
+                    self.assertAlmostEqual(eq[i][j][k], q(x, y, z), delta=10 * bd.machine_threshold())
+                    self.assertAlmostEqual(eq[i][j][k], (y ** 2) * z * ep[i][j][k], delta=10 * bd.machine_threshold())
 
 
 class StairlikeSequence2DTestCase(unittest.TestCase):
