@@ -69,7 +69,8 @@ class StairlikeSequence2D:
             return PolynomialMD([[bd.make_complex(1)]], support_start=(0,0)), PolynomialMD([bd.make_complex(0)], support_start=(0,0))
 
         if sup - inf <= 1:
-            unlft = NonLinearFourierSequence(self.coeffs[inf], support_start=self.m[inf])
+            k = inf - self.support_start[0]
+            unlft = NonLinearFourierSequence(self.coeffs[k], support_start=self.m[k])
             Gk, Fk = unlft.transform()
 
             return to_poly_md(Gk, 2), to_poly_md(Fk, 2).shift(inf, 0) # (G_k, F_k z^k)

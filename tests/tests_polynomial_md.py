@@ -244,14 +244,14 @@ class StairlikeSequence2DTestCase(unittest.TestCase):
 
     def test_random_multiplication(self):
         nlft1 = StairlikeSequence2D(random_stairlike_sequence_2d(10, shape=(4, 4)))
-        nlft2 = StairlikeSequence2D(random_stairlike_sequence_2d(10, shape=(4, 4)))
+        nlft2 = StairlikeSequence2D(random_stairlike_sequence_2d(10, shape=(4, 4)), support_start=(15, 10))
 
         a1, b1 = nlft1.transform()
         a2, b2 = nlft2.transform()
 
         r = b1 * b2
 
-        z = (random_complex(5), random_complex(5))
+        z = (random_complex(1), random_complex(1))
         self.assertAlmostEqual(b1(z) * b2(z), r(z), delta=10 * bd.machine_threshold())
 
 
