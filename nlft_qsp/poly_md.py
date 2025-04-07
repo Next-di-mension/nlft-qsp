@@ -388,7 +388,7 @@ class PolynomialMD(ComplexL0SequenceMD):
         
         raise TypeError("Polynomial division is only possible with scalars.")
     
-    def __call__(self, z) -> generic_complex:
+    def __call__(self, *z) -> generic_complex:
         """Evaluates the polynomial using Horner's method.
 
         Args:
@@ -397,9 +397,9 @@ class PolynomialMD(ComplexL0SequenceMD):
         Returns:
             complex: The evaluated result.
         """
-        if isinstance(z, Number):
-            z = (z,)
-        
+        if len(z) == 1 and isinstance(z[0], tuple):
+            z = z[0]
+
         if self.dim != len(z):
             raise ValueError("Incorrect number of variables to evaluate the multivariate polynomial.")
 

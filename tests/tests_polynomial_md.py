@@ -6,7 +6,7 @@ from nlft_md import StairlikeSequence2D
 import numerics as bd
 
 from poly_md import PolynomialMD
-from rand import random_sequence
+from rand import random_complex, random_sequence, random_stairlike_sequence_2d
 
 
 class PolynomialMDTestCase(unittest.TestCase):
@@ -171,14 +171,14 @@ class PolynomialMDTestCase(unittest.TestCase):
             [0, 3, 0],
             [2, 0, 0]
         ], (0,0))
-        self.assertEqual(p((1, 2)), 12)
+        self.assertEqual(p(1, 2), 12)
 
         p = PolynomialMD([ # P(x, y) = y^2(2x^2 + 3xy + y^2)
             [0, 0, 1],
             [0, 3, 0],
             [2, 0, 0]
         ], (0,2))
-        self.assertEqual(p((1, 2)), 48)
+        self.assertEqual(p(1, 2), 48)
 
         p = PolynomialMD([ # P(x, y, z) = x + yz - z^2
             [[0, 0, -1],
@@ -186,7 +186,7 @@ class PolynomialMDTestCase(unittest.TestCase):
             [[1, 0, 0],
              [0, 0, 0]]
         ], (0,0,0))
-        self.assertEqual(p((2, 3, 1)), 4)
+        self.assertEqual(p(2, 3, 1), 4)
 
     def test_eval_at_roots_of_unity(self):
         seq = random_sequence(10000, (4, 4, 4))
@@ -241,6 +241,19 @@ class StairlikeSequence2DTestCase(unittest.TestCase):
         self.assertAlmostEqual(b[1,1],     -21/(10*sqrt(17)), delta=10*bd.machine_threshold())
         self.assertAlmostEqual(b[2,0],     -4/(5*sqrt(17)),   delta=10*bd.machine_threshold())
         self.assertAlmostEqual(b[2,1],     2/(5*sqrt(17)),    delta=10*bd.machine_threshold())
+
+    def test_random_multiplication(self):
+        nlft1 = StairlikeSequence2D(random_stairlike_sequence_2d(10, shape=(4, 4)))
+        nlft2 = StairlikeSequence2D(random_stairlike_sequence_2d(10, shape=(4, 4)))
+
+        a1, b1 = nlft1.transform()
+        a2, b2 = nlft2.transform()
+
+        r = b1 * b2
+
+        z = (random_complex(5), random_complex(5))
+        self.assertAlmostEqual(b1(z) * b2(z), r(z), delta=10 * bd.machine_threshold())
+
 
 
 if __name__ == '__main__':

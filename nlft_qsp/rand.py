@@ -6,13 +6,15 @@ import mpmath as mp
 import numerics as bd
 from poly import Polynomial
 
+def random_complex(c):
+    return bd.make_complex(c*mp.rand() + c*1j*mp.rand())
 
 def random_sequence(c, N):
     if isinstance(N, Number):
         N = (N,)
     
     if len(N) == 1:
-        return [bd.make_complex(c*mp.rand() + c*1j*mp.rand()) for _ in range(N[0])]
+        return [random_complex(c) for _ in range(N[0])]
     
     l = []
     for k in range(N[0]):
@@ -55,14 +57,14 @@ def random_stairlike_sequence_2d(c, shape: tuple[int] = None, directions: str = 
     else:
         directions = list(directions)
 
-    cur_seq = [bd.make_complex(c*mp.rand() + c*1j*mp.rand())]
+    cur_seq = [random_complex(c)]
     seq = []
     for d in directions:
         if d == '^':
-            cur_seq.append(bd.make_complex(c*mp.rand() + c*1j*mp.rand()))
+            cur_seq.append(random_complex(c))
         elif d == '>':
             seq.append(cur_seq)
-            cur_seq = [bd.make_complex(c*mp.rand() + c*1j*mp.rand())]
+            cur_seq = [random_complex(c)]
 
     if len(cur_seq) != 0:
         seq.append(cur_seq)
