@@ -243,6 +243,10 @@ class StairlikeSequence2DTestCase(unittest.TestCase):
         self.assertAlmostEqual(b[2,0],     -4/(5*sqrt(17)),   delta=10*bd.machine_threshold())
         self.assertAlmostEqual(b[2,1],     2/(5*sqrt(17)),    delta=10*bd.machine_threshold())
 
+        nlft = StairlikeSequence2D(random_stairlike_sequence_2d(10, shape=(4, 4)), support_start=(2, 1))
+        a, b = nlft.transform()
+        self.assertAlmostEqual((a * a.conjugate() + b * b.conjugate() - 1).l2_norm(), 0, delta=10*bd.machine_threshold())
+
     def test_random_multiplication(self):
         nlft1 = StairlikeSequence2D(random_stairlike_sequence_2d(10, shape=(4, 4)))
         nlft2 = StairlikeSequence2D(random_stairlike_sequence_2d(10, shape=(4, 4)), support_start=(15, 10))
