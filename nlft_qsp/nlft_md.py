@@ -32,6 +32,9 @@ class StairlikeSequence2D:
             if not all(isinstance(c, Number) for c in col):
                 raise ValueError("coeffs must be a two-dimensional sequence of numbers.")
             
+            if len(col) == 0:
+                col = [0]
+            
             self.coeffs.append([bd.make_complex(c) for c in col])
             self.m.append(self.m[-1] + len(col) - 1)
 
