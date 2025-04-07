@@ -1,11 +1,11 @@
 
 import unittest
 
-from nlft import NonLinearFourierSequence
-from qsp import gqsp_solve, nlfs_to_phase_factors, xqsp_solve
-from rand import random_polynomial, random_real_polynomial, random_sequence
+import nlft_qsp.numerics as bd
 
-import numerics as bd
+from nlft_qsp.nlft import NonLinearFourierSequence
+from nlft_qsp.qsp import gqsp_solve, nlfs_to_phase_factors, xqsp_solve
+from nlft_qsp.rand import random_polynomial, random_real_polynomial, random_sequence
 
 
 class QSPTestCase(unittest.TestCase):

@@ -2,11 +2,11 @@
 from math import sqrt
 import unittest
 
-from nlft_md import StairlikeSequence2D
-import numerics as bd
+import nlft_qsp.numerics as bd
 
-from poly_md import PolynomialMD
-from rand import random_complex, random_sequence, random_stairlike_sequence_2d
+from nlft_qsp.nlft_md import StairlikeSequence2D
+from nlft_qsp.poly_md import PolynomialMD
+from nlft_qsp.rand import random_complex, random_sequence, random_stairlike_sequence_2d
 
 
 class PolynomialMDTestCase(unittest.TestCase):

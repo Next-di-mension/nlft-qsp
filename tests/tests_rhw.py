@@ -4,11 +4,10 @@ import unittest
 import numpy as np
 import scipy as sp
 
-from nlft import NonLinearFourierSequence
-from rand import random_polynomial, random_sequence
+import nlft_qsp.numerics as bd
 
-import numerics as bd
-import riemann_hilbert, weiss
+from nlft_qsp.rand import random_polynomial
+from nlft_qsp import riemann_hilbert, weiss
 
 
 class RHWTestCase(unittest.TestCase):
@@ -43,11 +42,11 @@ class RHWTestCase(unittest.TestCase):
         e0 = [1] + [0] * 15
 
         L = riemann_hilbert.half_cholesky_ldl(e0, reversed(c.coeffs))
-        L = np.matrix(bd.to_list(L), dtype=np.complex128)
+        L = np.array(bd.to_list(L), dtype=np.complex128)
         # we force numpy/scipy for this test, but L is computed with bd.
 
-        B = np.matrix(bd.to_list(riemann_hilbert.toeplitz(c, 0)), dtype=np.complex128)
-        K = np.eye(16) + B @ B.H
+        B = np.array(bd.to_list(riemann_hilbert.toeplitz(c, 0)), dtype=np.complex128)
+        K = np.eye(16) + B @ np.transpose(np.conjugate(B))
         for k in range(16): # just to suppress the annoying ComplexWarning
             K[k, k] = np.real(K[k, k])
 

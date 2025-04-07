@@ -126,7 +126,7 @@ class NumpyBackend(NumericBackend):
         return np.fft.ifftn(np.array(x), shape, norm=norm).tolist()
     
     def matrix(self, x: list):
-        return np.matrix(x, dtype=self.dtype)
+        return np.array(x, dtype=self.dtype)
     
     def to_list(self, x):
         return x.tolist()
