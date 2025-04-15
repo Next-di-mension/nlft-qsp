@@ -1,4 +1,5 @@
 
+import itertools
 from math import prod
 from numbers import Number
 from typing import Iterable
@@ -105,6 +106,18 @@ def zeros(lens):
 
     return zr
 
+def sgn(k: int):
+    if k > 0:
+        return 1
+    if k < 0:
+        return -1
+    return 0
+
+def schwarz_multiplier(k: tuple):
+    """Fourier multiplier for the Schwarz transform over several variables."""
+    return prod((1 - sgn(kj)) for kj in k)#/(1 << (len(k) - 1))
+
+
 class ComplexL0SequenceMD:
 
     def __init__(self, coeffs: list, support_start: tuple[int] | int):
@@ -148,6 +161,9 @@ class ComplexL0SequenceMD:
     
     def coeff_list(self, rng=None):
         r"""Returns a `dim`-dimensional list containing the coefficients.
+
+        Note:
+            The stop element of the ranges are not included in the list.
         
         Args:
             rng: `dim`-dimensional tuple of range objects, giving the range for the hyper-parallelepiped along each axis. Defaults to the support of the sequence, as returned by `support()`.
@@ -352,6 +368,21 @@ class PolynomialMD(ComplexL0SequenceMD):
 
         return PolynomialMD(cf, tuple(-rng.stop + 1 for rng in self.support()))
     
+    def schwarz_transform(self):
+        r"""Returns the anti-analytic polynomial whose real part gives the current polynomial.
+        
+        In other words, this is equivalent to adding :math:`iH[p]`, where :math:`H[p]` is the Hilbert transform of p.
+
+        Returns:
+            Polynomial: The Schwarz transform of the polynomial.
+        """
+        st = self.duplicate() # TODO This method can be more efficient
+
+        for k in itertools.product(*self.support()):
+            st[*k] = schwarz_multiplier(k) * st[*k]
+
+        return st
+    
     def __mul__(self, other):
         if isinstance(other, Number):
             return self._coeffwise_unary(lambda x: x * other)
@@ -445,7 +476,7 @@ class PolynomialMD(ComplexL0SequenceMD):
         """
         return max([abs(x) for x in flatten(self.eval_at_roots_of_unity(N))])
     
-    def truncate(self, rng: tuple[range]):
+    def truncate(self, *rng: tuple[range] | tuple[tuple[range]]):
         """Keeps only the coefficients in the hyperrectangle defined by rng, discarding the other.
         
         Note:
@@ -457,6 +488,11 @@ class PolynomialMD(ComplexL0SequenceMD):
         Returns:
             PolynomialMD: A new, truncated polynomial.
         """
+        if len(rng) == 1 and isinstance(rng, tuple):
+            rng = rng[0]
+        
+        rng = tuple(range(r.start, r.stop+1) for r in rng)
+
         return PolynomialMD(self.coeff_list(rng), tuple(r.start for r in rng))
     
 
