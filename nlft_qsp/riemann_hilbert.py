@@ -118,6 +118,7 @@ def half_cholesky_ldl(u, v):
         vp = [Lk[j, 1] for j in range(n+1-k)]
 
         L_cols.append([upj/up[0] for upj in up])
+        # print('Lcols', L_cols)
 
         G = bd.matrix([[uk, vk] for uk, vk in zip(up[:-1], vp[1:])])
 

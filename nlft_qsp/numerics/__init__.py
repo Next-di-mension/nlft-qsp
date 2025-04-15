@@ -121,6 +121,8 @@ def sqrt(x):
     
 def log(x):
     """Returns the natural logarithm of the given complex number."""
+       
+    # print('x', x, 'log', __bd_wrapper.bd.log(x))    
     return __bd_wrapper.bd.log(x)
     
 def exp(x):

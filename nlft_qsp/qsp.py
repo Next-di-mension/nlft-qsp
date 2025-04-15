@@ -46,8 +46,37 @@ def is_definite_parity(P: Polynomial, n: int = -1) -> bool:
 
 def chebyshev_to_laurent(c: list[generic_complex]) -> Polynomial:
     """Returns the Laurent polynomial equivalent to the Chebyshev expansion."""
-    return Polynomial(reversed(c[1:]) + c, support_start=len(c)-1)
+    return Polynomial(list(reversed(c[1:])) + c, support_start=len(c)-1)
+#     # print('coeffiencents', c)
+#     # print('len coeffiencents', len(c))
+#     # print('reversed coeffiencents len', len(list(reversed(c[1:]))))
+#     # print('reversed coeffiencents', list(reversed(c[1:])))
+#     # print('first element', list(reversed(c[1:]))[0])
+#     a = list(reversed(c[1:])) 
+#     # print('a type', type(a))
+#     # print('a', a)  
+#     # print('len a', len(a)) 
 
+#     k1 = a + [i for i in c]
+#     # print('k1', k1)
+#     # k = list(reversed(c[1:])).append(c)
+#     # print('k', k)
+    
+#     return Polynomial(k1, support_start=len(c)-1)
+
+# def chebyshev_to_laurent(c: list[generic_complex]) -> Polynomial:
+#     """Returns the Laurent polynomial equivalent to the Chebyshev expansion."""
+#     n = len(c) - 1
+#     coeffs = {}
+#     for k in range(n + 1):
+#         if k == 0:
+#             coeffs[0] = c[0]
+#         else:
+#             coeffs[-k] = c[k] / 2
+#             coeffs[k] = c[k] / 2
+#     # Extract coefficients in order from -n to n
+#     laurent_coeffs = [coeffs.get(i, 0) for i in range(-n, n+1)]
+#     return Polynomial(laurent_coeffs, support_start=-n)
 
 def phase_prefactor(F: generic_complex) -> generic_real:
     """Computes the phase prefactor for the Fourier sequence coefficient F."""
@@ -349,10 +378,12 @@ def chebqsp_solve(c: list[generic_complex]) -> PhaseFactors:
         
     Raises:
         ValueError: If the target polynomial does not have definite parity or is not real."""
+    print(c)
+    print(ck for ck in c)
     if any(bd.im(ck) > bd.machine_threshold() for ck in c):
         raise ValueError("Only real polynomials are supported.")
 
     P = chebyshev_to_laurent(c)
     HP = (P + P.conjugate())/2
-
+    print(HP)
     return xqsp_solve_laurent(HP)

@@ -83,6 +83,7 @@ class QSPTestCase(unittest.TestCase):
     @bd.workdps(30)
     def test_xqsp_solver(self):
         P = random_real_polynomial(16, eta=0.5)
+        print(P)
 
         qsp = xqsp_solve(1j*P, mode='nlft')
         Q2, P2 = qsp.polynomials()

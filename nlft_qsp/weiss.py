@@ -51,7 +51,7 @@ def weiss_internal(b: Polynomial, compute_ratio=False, verbose=False):
         N *= 2
 
         b_points = b.eval_at_roots_of_unity(N)
-
+        # print(f"b_points = {b_points}")
         R = laurent_approximation([bd.log(1 - bd.abs2(bz))/2 for bz in b_points])
 
         G = R.schwarz_transform()
