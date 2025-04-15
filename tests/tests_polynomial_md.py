@@ -6,7 +6,8 @@ import nlft_qsp.numerics as bd
 
 from nlft_qsp.nlft_md import StairlikeSequence2D
 from nlft_qsp.poly_md import PolynomialMD
-from nlft_qsp.rand import random_complex, random_sequence, random_stairlike_sequence_2d
+from nlft_qsp.rand import random_complex, random_list, random_sequence, random_stairlike_sequence_2d
+from nlft_qsp.poly import Polynomial
 
 
 class PolynomialMDTestCase(unittest.TestCase):
@@ -203,6 +204,125 @@ class PolynomialMDTestCase(unittest.TestCase):
                     self.assertAlmostEqual(ep[i][j][k], p(x, y, z), delta=10 * bd.machine_threshold())
                     self.assertAlmostEqual(eq[i][j][k], q(x, y, z), delta=10 * bd.machine_threshold())
                     self.assertAlmostEqual(eq[i][j][k], (y ** 2) * z * ep[i][j][k], delta=10 * bd.machine_threshold())
+
+class Polynomial1DToMDTestCase(unittest.TestCase):
+
+    def test_eval(self):
+        seq = random_sequence(10, 16)
+        w = random_complex(10)
+        y = random_complex(10)
+
+        p1 = PolynomialMD([seq], support_start=(0,0))
+        p2 = PolynomialMD([[c] for c in seq], support_start=(0,0))
+        p3 = PolynomialMD([[seq]], support_start=(0,0,0))
+        q = Polynomial(seq, support_start=0)
+
+        for z in bd.unitroots(16):
+            self.assertAlmostEqual(p1(w, z), q(z), delta=10*bd.machine_threshold())
+            self.assertAlmostEqual(p2(z, w), q(z), delta=10*bd.machine_threshold())
+            self.assertAlmostEqual(p3(y, w, z), q(z), delta=10*bd.machine_threshold())
+
+        p1 = PolynomialMD([seq], support_start=(0,3))
+        p2 = PolynomialMD([[c] for c in seq], support_start=(3,0))
+        p3 = PolynomialMD([[seq]], support_start=(0,0,3))
+        q = Polynomial(seq, support_start=3)
+
+        for z in bd.unitroots(16):
+            self.assertAlmostEqual(p1(w, z), q(z), delta=10*bd.machine_threshold())
+            self.assertAlmostEqual(p2(z, w), q(z), delta=10*bd.machine_threshold())
+            self.assertAlmostEqual(p3(y, w, z), q(z), delta=10*bd.machine_threshold())
+
+        e1 = p1.eval_at_roots_of_unity(16)
+        e2 = p2.eval_at_roots_of_unity(16)
+        e3 = p3.eval_at_roots_of_unity(16)
+
+        eq = q.eval_at_roots_of_unity(16)
+
+        for k in range(16):
+
+            for h in range(16):
+                self.assertAlmostEqual(e1[h][k], eq[k], delta=10*bd.machine_threshold())
+                self.assertAlmostEqual(e2[k][h], eq[k], delta=10*bd.machine_threshold())
+
+                for j in range(16):
+                    self.assertAlmostEqual(e3[j][h][k], eq[k], delta=10*bd.machine_threshold())
+
+    def test_eval_at_roots_of_unity(self):
+        seq = random_sequence(10, 16)
+
+        e1 = PolynomialMD([seq], support_start=(0,3))               .eval_at_roots_of_unity(16)
+        e2 = PolynomialMD([[c] for c in seq], support_start=(3,0))  .eval_at_roots_of_unity(16)
+        e3 = PolynomialMD([[seq]], support_start=(0,0,3))           .eval_at_roots_of_unity(16)
+
+        eq = Polynomial(seq, support_start=3).eval_at_roots_of_unity(16)
+
+        for k in range(16):
+            for h in range(16):
+                self.assertAlmostEqual(e1[h][k], eq[k], delta=10*bd.machine_threshold())
+                self.assertAlmostEqual(e2[k][h], eq[k], delta=10*bd.machine_threshold())
+
+                for j in range(16):
+                    self.assertAlmostEqual(e3[j][h][k], eq[k], delta=10*bd.machine_threshold())
+
+    def test_add(self):
+        seq1 = random_sequence(10, 16)
+        seq2 = random_sequence(10, 16)
+
+        p1_md = PolynomialMD([seq1], support_start=(0,0))
+        q1_md = PolynomialMD([seq2], support_start=(0,-5))
+
+        p2_md = PolynomialMD([[c] for c in seq1], support_start=(0,0))
+        q2_md = PolynomialMD([[c] for c in seq2], support_start=(-5,0))
+
+        p = Polynomial(seq1, support_start=0)
+        q = Polynomial(seq2, support_start=-5)
+
+        r1_md = p1_md + q1_md
+        r2_md = p2_md + q2_md
+        r = p + q
+
+        w = random_complex(10)
+        for z in bd.unitroots(1024):
+            self.assertAlmostEqual(r1_md(w, z), r(z), delta=10*bd.machine_threshold())
+            self.assertAlmostEqual(r2_md(z, w), r(z), delta=10*bd.machine_threshold())
+
+    def test_mul(self):
+        seq1 = random_sequence(10, 16)
+        seq2 = random_sequence(10, 16)
+
+        p1_md = PolynomialMD([seq1], support_start=(0,0))
+        q1_md = PolynomialMD([seq2], support_start=(0,-5))
+
+        p2_md = PolynomialMD([[c] for c in seq1], support_start=(0,0))
+        q2_md = PolynomialMD([[c] for c in seq2], support_start=(-5,0))
+
+        p = Polynomial(seq1, support_start=0)
+        q = Polynomial(seq2, support_start=-5)
+
+        r1_md = p1_md * q1_md
+        r2_md = p2_md * q2_md
+        r = p * q
+
+        w = random_complex(10)
+        for z in bd.unitroots(1024):
+            self.assertAlmostEqual(r1_md(w, z), r(z), delta=10*bd.machine_threshold())
+            self.assertAlmostEqual(r2_md(z, w), r(z), delta=10*bd.machine_threshold())
+
+    def test_schwarz_transform(self):
+        seq = random_sequence(10, 10)
+        w = random_complex(10)
+        y = random_complex(10)
+
+        p1 = PolynomialMD([seq], support_start=(0,0))               .schwarz_transform()
+        p2 = PolynomialMD([[c] for c in seq], support_start=(0,0))  .schwarz_transform()
+        p3 = PolynomialMD([[seq]], support_start=(0,0,0))           .schwarz_transform()
+        q = Polynomial(seq, support_start=0)                        .schwarz_transform()
+
+        for z in bd.unitroots(16):
+            self.assertAlmostEqual(p1(w, z), q(z), delta=10*bd.machine_threshold())
+            self.assertAlmostEqual(p2(z, w), q(z), delta=10*bd.machine_threshold())
+            self.assertAlmostEqual(p3(y, w, z), q(z), delta=10*bd.machine_threshold())
+
 
 
 class StairlikeSequence2DTestCase(unittest.TestCase):
