@@ -70,4 +70,15 @@ def random_stairlike_sequence_2d(c, shape: tuple[int] = None, directions: str = 
         seq.append(cur_seq)
 
     return seq
-            
+
+def random_list(c, shape: tuple[int]):
+    l = []
+    if len(shape) == 1:
+        for _ in range(shape[0]):
+            l.append(random_complex(c))
+        return l
+    
+    for _ in range(shape[0]):
+        l.append(random_list(c, shape[1:]))
+
+    return l
