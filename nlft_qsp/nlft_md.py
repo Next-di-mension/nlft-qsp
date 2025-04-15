@@ -98,7 +98,7 @@ class StairlikeSequence2D:
         b_sup_y = self.support_y()
         
         b_sup = (b_sup_x, b_sup_y)
-        a_sup = (range(b_sup_x.start - b_sup_x.stop, 1), range(b_sup_y.start - b_sup_y.stop, 1)) # 1s excluded
+        a_sup = (range(b_sup_x.start - b_sup_x.stop, 0), range(b_sup_y.start - b_sup_y.stop, 0)) # 1s excluded
 
         return a.truncate(a_sup), b.truncate(b_sup)
 
