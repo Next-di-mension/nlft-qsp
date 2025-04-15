@@ -21,3 +21,18 @@ def flatten(l):
                 yield sub_x
         else:
             yield x
+
+def shape(lst: list):
+    """Returns the shape of the given multi-dimensional list, intended as a tuple
+    containing the maximum length of the lists along each axis."""
+    if not isinstance(lst, list):
+        return ()
+    
+    N0 = len(lst)
+
+    sub_shapes = [shape(sub) for sub in lst]
+    if not sub_shapes:
+        return (N0,)
+
+    max_sub_shape = tuple(max(sizes) for sizes in zip(*[s + (0,)*(max(len(s) for s in sub_shapes) - len(s)) for s in sub_shapes]))
+    return (N0,) + max_sub_shape
