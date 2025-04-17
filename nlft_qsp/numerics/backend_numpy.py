@@ -1,5 +1,6 @@
 
 import numpy as np
+import scipy.linalg
 
 
 from numerics.backend import NumericBackend
@@ -131,4 +132,4 @@ class NumpyBackend(NumericBackend):
         return np.linalg.solve(A, b)
     
     def qr_decomp(self, A):
-        return np.linalg.qr(A)
+        return scipy.linalg.qr(A)
