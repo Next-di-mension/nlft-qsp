@@ -2,10 +2,11 @@
 import unittest
 
 from nlft import NonLinearFourierSequence
-from qsp import gqsp_solve, nlfs_to_phase_factors, xqsp_solve
+from qsp import gqsp_solve, nlfs_to_phase_factors, xqsp_solve, chebqsp_solve
 from rand import random_polynomial, random_real_polynomial, random_sequence
 
 import numerics as bd
+import numpy as np
 
 
 class QSPTestCase(unittest.TestCase):
@@ -94,6 +95,21 @@ class QSPTestCase(unittest.TestCase):
 
         self.assertAlmostEqual((P - P2).l2_norm(), 0, delta=bd.machine_threshold())
 
+    @bd.workdps(30)
+    def test_chebqsp_solve(self):
+        coef_odd = [0, 0.1, 0, -0.3, 0, 0.2, 0, 0.14]
+        coef_even = [0.3, 0, -0.2, 0, 0.1, 0, 0.19]
+        for coef in (coef_odd, coef_even):
+            chebyPoly = np.polynomial.Chebyshev(coef)
+            
+            P, Q = chebqsp_solve(coef).polynomials(mode="laurent")
+            Pprime = (P + P.conjugate() + Q - Q.conjugate())/2
+
+            for alpha in np.linspace(0, 2*np.pi, 100):
+                z = np.exp(1j*alpha)
+                x = (z + np.conj(z))/2
+                self.assertAlmostEqual(P(z), chebyPoly(x), delta=bd.machine_threshold())
+                self.assertAlmostEqual(np.real(Pprime(z)), chebyPoly(x), delta=bd.machine_threshold())
 
 
 if __name__ == '__main__':

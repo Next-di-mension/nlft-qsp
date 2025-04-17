@@ -46,7 +46,8 @@ def is_definite_parity(P: Polynomial, n: int = -1) -> bool:
 
 def chebyshev_to_laurent(c: list[generic_complex]) -> Polynomial:
     """Returns the Laurent polynomial equivalent to the Chebyshev expansion."""
-    return Polynomial(reversed(c[1:]) + c, support_start=len(c)-1)
+    P = Polynomial(c)
+    return (P + P.conjugate())/2
 
 
 def phase_prefactor(F: generic_complex) -> generic_real:
@@ -353,6 +354,4 @@ def chebqsp_solve(c: list[generic_complex]) -> PhaseFactors:
         raise ValueError("Only real polynomials are supported.")
 
     P = chebyshev_to_laurent(c)
-    HP = (P + P.conjugate())/2
-
-    return xqsp_solve_laurent(HP)
+    return xqsp_solve_laurent(P)
