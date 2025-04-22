@@ -101,10 +101,19 @@ class QSPTestCase(unittest.TestCase):
         coef_even = [0.3, 0, -0.2, 0, 0.1, 0, 0.19]
         for coef in (coef_odd, coef_even):
             chebyPoly = np.polynomial.Chebyshev(coef)
-            
-            P, Q = chebqsp_solve(coef).polynomials(mode="laurent")
-            Pprime = (P + P.conjugate() + Q - Q.conjugate())/2
+            phase_factors = chebqsp_solve(coef)
+            P, Q = phase_factors.polynomials(mode="laurent")
 
+            # Degree
+            self.assertEqual(P.effective_degree(), chebyPoly.degree()*2)
+            
+            # Phase factor symmetry
+            phi = np.array(phase_factors.phi)
+            phi[-1] -= np.pi/2
+            self.assertTrue(np.allclose(phi - phi[::-1], 0))
+
+            # Polynomial relationships
+            Pprime = (P + P.conjugate() + Q - Q.conjugate())/2
             for alpha in np.linspace(0, 2*np.pi, 100):
                 z = np.exp(1j*alpha)
                 x = (z + np.conj(z))/2
