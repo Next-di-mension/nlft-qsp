@@ -178,6 +178,22 @@ def ifft(x: list, normalize=True):
     Args:
         normalize (bool): whether the result should be divided by the length of the vector."""
     return __bd_wrapper.bd.ifft(x, normalize)
+
+def fft_md(x: list, shape: tuple=None, normalize=False):
+    """Computes the Fast Fourier Transform in multiple dimensions of the given list of complex numbers.
+    The list is padded to the next power of two in each dimension.
+        
+    Args:
+        normalize (bool): whether the result should be divided by the size of the list."""
+    return __bd_wrapper.bd.fft_md(x, shape, normalize)
+    
+def ifft_md(x: list, shape: tuple=None, normalize=True):
+    """Computes the Inverse Fast Fourier Transform in multiple dimensions of the given list of complex numbers.
+    The list is padded to the next power of two in each dimension.
+        
+    Args:
+        normalize (bool): whether the result should be divided by the size of the list."""
+    return __bd_wrapper.bd.ifft_md(x, shape, normalize)
     
 def matrix(x: list):
     """Constructs an object of the backend representing a matrix with the given list (of lists) of coefficients."""
