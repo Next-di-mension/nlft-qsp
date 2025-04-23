@@ -60,6 +60,12 @@ class MPMathBackend(NumericBackend):
     def abs2(self, x: generic_complex):
         return self.ctx.re(x)**2 + self.ctx.im(x)**2
     
+    def arcsin(self, x: generic_complex):
+        return self.ctx.asin(x)
+    
+    def arccos(self, x: generic_complex):
+        return self.ctx.acos(x)
+    
     def arctan(self, x: generic_complex):
         return self.ctx.atan(x)
     

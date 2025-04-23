@@ -139,6 +139,14 @@ def tan(x):
     """Returns the tangent of the given complex number."""
     return __bd_wrapper.bd.tan(x)
 
+def arcsin(x):
+    """Returns the arcsine of the given complex number."""
+    return __bd_wrapper.bd.arcsin(x)
+
+def arccos(x):
+    """Returns the arccosine of the given complex number."""
+    return __bd_wrapper.bd.arccos(x)
+
 def arctan(x):
     """Returns the arctangent of the given complex number."""
     return __bd_wrapper.bd.arctan(x)
