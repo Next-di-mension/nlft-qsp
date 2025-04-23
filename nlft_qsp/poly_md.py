@@ -115,7 +115,13 @@ def sgn(k: int):
 
 def schwarz_multiplier(k: tuple):
     """Fourier multiplier for the Schwarz transform over several variables."""
-    return prod((1 - sgn(kj)) for kj in k)#/(1 << (len(k) - 1))
+    if all(c == 0 for c in k):
+        return 1
+    
+    if all(c <= 0 for c in k):
+        return 2
+    
+    return 0
 
 
 class ComplexL0SequenceMD:

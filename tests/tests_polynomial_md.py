@@ -379,6 +379,20 @@ class StairlikeSequence2DTestCase(unittest.TestCase):
         z = (random_complex(1), random_complex(1))
         self.assertAlmostEqual(b1(z) * b2(z), r(z), delta=10 * bd.machine_threshold())
 
+    def test_schwarz_transform(self):
+        p = PolynomialMD(random_list(1, (3, 3)), support_start=(-1, -1))
+        q = p.schwarz_transform()
+
+        self.assertAlmostEqual(p[-1,-1]*2, q[-1,-1], delta=10*bd.machine_threshold())
+        self.assertAlmostEqual(p[-1,0]*2,  q[-1,0],  delta=10*bd.machine_threshold())
+        self.assertAlmostEqual(0,          q[-1,1],  delta=10*bd.machine_threshold())
+        self.assertAlmostEqual(p[0,-1]*2,  q[0,-1],  delta=10*bd.machine_threshold())
+        self.assertAlmostEqual(p[0, 0],    q[0, 0],  delta=10*bd.machine_threshold())
+        self.assertAlmostEqual(0,          q[1,-1],  delta=10*bd.machine_threshold())
+        self.assertAlmostEqual(0,          q[0, 1],  delta=10*bd.machine_threshold())
+        self.assertAlmostEqual(0,          q[1, 0],  delta=10*bd.machine_threshold())
+        self.assertAlmostEqual(0,          q[1, 1],  delta=10*bd.machine_threshold())
+
 
 
 if __name__ == '__main__':
