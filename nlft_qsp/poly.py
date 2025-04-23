@@ -95,7 +95,47 @@ class ComplexL0Sequence:
     def is_imaginary(self) -> bool:
         """Whether the sequence has only imaginary elements."""
         return all(bd.re(F) <= bd.machine_threshold() for F in self.coeffs)
+    
+    def __add__(self, other):
+        if isinstance(other, Number):
+            q = self.duplicate()
+            q[0] += other
 
+            return q
+        elif not isinstance(other, Polynomial):
+            raise TypeError("Polynomial addition admits only other polynomials or scalars.")
+                
+        self_end = self.support_start + len(self.coeffs)
+        other_end = other.support_start + len(other.coeffs)
+        
+        sum_start = min(self.support_start, other.support_start)
+        sum_end = max(self_end, other_end)
+
+        sum_coeffs = []
+        for k in range(sum_start, sum_end):
+            res = bd.make_complex(0)
+            
+            if self.support_start <= k and k < self_end:
+                res += self.coeffs[k - self.support_start]
+
+            if other.support_start <= k and k < other_end:
+                res += other.coeffs[k - other.support_start]
+
+            sum_coeffs.append(res)
+            
+        return Polynomial(sum_coeffs, sum_start)
+    
+    def __radd__(self, other):
+        return self + other
+    
+    def __neg__(self):
+        return Polynomial([-c for c in self.coeffs], self.support_start)
+    
+    def __sub__(self, other):
+        return self + (-other)
+    
+    def __rsub__(self, other):
+        return self + (-other)
 
 
 class Polynomial(ComplexL0Sequence):
@@ -163,47 +203,6 @@ class Polynomial(ComplexL0Sequence):
                 schwarz_coeffs.append(self[k])
 
         return Polynomial(schwarz_coeffs, self.support_start)
-
-    def __add__(self, other):
-        if isinstance(other, Number):
-            q = self.duplicate()
-            q[0] += other
-
-            return q
-        elif not isinstance(other, Polynomial):
-            raise TypeError("Polynomial addition admits only other polynomials or scalars.")
-                
-        self_end = self.support_start + len(self.coeffs)
-        other_end = other.support_start + len(other.coeffs)
-        
-        sum_start = min(self.support_start, other.support_start)
-        sum_end = max(self_end, other_end)
-
-        sum_coeffs = []
-        for k in range(sum_start, sum_end):
-            res = bd.make_complex(0)
-            
-            if self.support_start <= k and k < self_end:
-                res += self.coeffs[k - self.support_start]
-
-            if other.support_start <= k and k < other_end:
-                res += other.coeffs[k - other.support_start]
-
-            sum_coeffs.append(res)
-            
-        return Polynomial(sum_coeffs, sum_start)
-    
-    def __radd__(self, other):
-        return self + other
-    
-    def __neg__(self):
-        return Polynomial([-c for c in self.coeffs], self.support_start)
-    
-    def __sub__(self, other):
-        return self + (-other)
-    
-    def __rsub__(self, other):
-        return self + (-other)
 
     def __mul__(self, other):
         if isinstance(other, Number):
