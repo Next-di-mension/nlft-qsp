@@ -149,6 +149,7 @@ class PhaseFactors:
 
     def __init__(self, phi: list[generic_real], lbd: generic_real=0, theta: list[generic_real]=None, mode='gqsp'):
         self.lbd = lbd
+        self.mode = mode
 
         match mode:
             case "gqsp":
