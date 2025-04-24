@@ -283,8 +283,8 @@ def gqsp_solve(P: Polynomial, mode='qsp') -> PhaseFactors:
         
         The support_start of P will be ignored."""
     
-    if bd.abs(P.sup_norm(4*P.effective_degree()) - 1) < bd.machine_threshold():
-        raise ValueError("The given polynomial cannot be too close to one on the unit circle.")
+    if 1 - P.sup_norm(4*P.effective_degree()) < bd.machine_threshold():
+        raise ValueError("The given polynomial cannot be too close to or larger than one on the unit circle.")
     
     match mode:
         case "qsp":
