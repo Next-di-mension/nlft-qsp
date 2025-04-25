@@ -6,12 +6,45 @@ import numpy as np
 import nlft_qsp.numerics as bd
 
 from nlft_qsp.nlft import NonLinearFourierSequence
-from nlft_qsp.qsp import gqsp_solve, nlfs_to_phase_factors, chebqsp_solve, xqsp_solve
+from nlft_qsp.qsp import ChebyshevQSPPhaseFactors, XQSPPhaseFactors, YQSPPhaseFactors, gqsp_solve, nlfs_to_phase_factors, chebqsp_solve, xqsp_solve
 from nlft_qsp.rand import random_polynomial, random_real_polynomial, random_sequence
 
 
 class QSPTestCase(unittest.TestCase):
-    
+
+    @bd.workdps(30)
+    def test_xqsp_phase_factors(self):
+        qsp = XQSPPhaseFactors([bd.pi()/3, bd.pi()/6, bd.pi()/4])
+
+        P, Q = qsp.polynomials()
+        for k, c in enumerate([-0.53033, -0.482963, 0.306186]):
+            self.assertAlmostEqual(P[k], c, delta=10e-7)
+
+        for k, c in enumerate([0.53033j, -0.12941j, 0.306186j]):
+            self.assertAlmostEqual(Q[k], c, delta=10e-7)
+
+    @bd.workdps(30)
+    def test_yqsp_phase_factors(self):
+        qsp = YQSPPhaseFactors([bd.pi()/3, bd.pi()/6, bd.pi()/4])
+
+        P, Q = qsp.polynomials()
+        for k, c in enumerate([-0.53033, -0.482963, 0.306186]):
+            self.assertAlmostEqual(P[k], c, delta=10e-7)
+
+        for k, c in enumerate([0.53033, -0.12941, 0.306186]):
+            self.assertAlmostEqual(Q[k], c, delta=10e-7)
+
+    @bd.workdps(30)
+    def test_chebqsp_phase_factors(self):
+        qsp = ChebyshevQSPPhaseFactors([bd.pi()/3, bd.pi()/6, bd.pi()/4])
+
+        P, Q = qsp.polynomials(mode='laurent')
+        for k, c in enumerate([-0.112072+0.418258j, 0, -0.482963-0.12941j, 0, -0.112072+0.418258j]):
+            self.assertAlmostEqual(P[k - 2], c, delta=10e-7)
+
+        for k, c in enumerate([-0.418258-0.112072j, 0, 0, 0, 0.418258+0.112072j]):
+            self.assertAlmostEqual(Q[k - 2], c, delta=10e-7)
+
     @bd.workdps(30)
     def test_gqsp_phase_factors(self):
         nlft = NonLinearFourierSequence(random_sequence(100, 16))
