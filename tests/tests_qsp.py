@@ -5,10 +5,10 @@ import numpy as np
 
 import nlft_qsp.numerics as bd
 
+from nlft_qsp.poly import ChebyshevTExpansion
 from nlft_qsp.nlft import NonLinearFourierSequence
 from nlft_qsp.qsp import ChebyshevQSPPhaseFactors, XQSPPhaseFactors, YQSPPhaseFactors, gqsp_solve, nlfs_to_phase_factors, chebqsp_solve, xqsp_solve
 from nlft_qsp.rand import random_polynomial, random_real_polynomial, random_sequence
-from poly import ChebyshevTExpansion
 
 
 class QSPTestCase(unittest.TestCase):
