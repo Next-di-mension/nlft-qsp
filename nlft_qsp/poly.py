@@ -96,6 +96,13 @@ class ComplexL0Sequence:
         """Whether the sequence has only imaginary elements."""
         return all(bd.re(F) <= bd.machine_threshold() for F in self.coeffs)
     
+    def is_symmetric(self) -> bool:
+        """Whether the sequence satisfies F[k] = F[-k]."""
+        for k in self.support():
+            if abs(self[k] - self[-k]) > bd.machine_threshold():
+                return False
+        return True
+    
     def __add__(self, other):
         if isinstance(other, Number):
             q = self.duplicate()
@@ -304,3 +311,45 @@ class Polynomial(ComplexL0Sequence):
             str: The string representation of the polynomial.
         """
         return ' + '.join(f"{c} z^{self.support_start + k}" for k, c in enumerate(self.coeffs))
+    
+
+class ChebyshevTExpansion(ComplexL0Sequence):
+    """Linear combination of Chebyshev polynomials of the first kind.
+    
+    Args:
+        c: Either the coefficients of the linear combination, or the symmetric Laurent polynomial `P(z)` which are equal up to the change of variable `x = (z + z^(-1))/2`.
+    """
+    def __init__(self, c: list[generic_complex] | Polynomial):
+        if isinstance(c, list):
+            super().__init__(c, support_start=0)
+        elif isinstance(c, Polynomial):
+            if not c.is_symmetric():
+                raise ValueError("The given Laurent polynomial is not symmetric.")
+
+            coeffs = [2*c[k] for k in range(c.support().stop)]
+            coeffs[0] /= 2
+            super().__init__(coeffs, support_start=0)
+        else:
+            raise ValueError("Only a coefficient vector or symmetric Laurent polynomials are allowed.")
+        
+    def degree(self) -> int:
+        return len(self.coeffs) - 1
+
+    def __call__(self, x: generic_real) -> generic_complex:
+        """Evaluates the Chebyshev expansion at the given number.
+
+        Args:
+            x (real): The point at which to evaluate the expansion.
+
+        Returns:
+            complex: The evaluated result.
+        """
+        theta = bd.arccos(x)
+
+        return sum(self[k] * bd.cos(k * theta) for k in self.support())
+    
+    def to_laurent(self):
+        """Returns the Laurent polynomial `P(z) = self((z + z^(-1))/2)`."""
+        P = Polynomial(list(reversed(self.coeffs)) + self.coeffs[1:], support_start=-len(self.coeffs)+1)
+        P[0] *= 2
+        return P/2

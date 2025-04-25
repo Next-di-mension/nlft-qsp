@@ -2,7 +2,7 @@
 from nlft import NonLinearFourierSequence
 import numerics as bd
 
-from poly import Polynomial
+from poly import ChebyshevTExpansion, Polynomial
 from numerics.backend import generic_real, generic_complex
 
 import riemann_hilbert, weiss
@@ -400,18 +400,21 @@ def xqsp_solve_laurent(P: Polynomial, mode='qsp') -> XQSPPhaseFactors:
     
     return xqsp_solve(laurent_to_analytic(P), mode=mode)
 
-def chebqsp_solve(c: list[generic_complex]) -> XQSPPhaseFactors:
+def chebqsp_solve(T: list[generic_complex] | ChebyshevTExpansion) -> ChebyshevQSPPhaseFactors:
     """Returns the set of phase factors for a Chebyshev QSP protocol implementing the polynomial `P(x)`.
 
     The target polynomial will be `P(x) = c[0] + c[1] T_1(x) + c[2] T_2(x) + ... + c[n] T_n(x)`, where `T_k` are the Chebyshev polynomials of the first kind.
     
     Args:
-        c (list[complex]): the list of coefficients of `P(x)` in the Chebyshev basis.
+        c: the list of coefficients of `P(x)` in the Chebyshev basis, or a ChebyshevTExpansion object.
         
     Raises:
         ValueError: If the target polynomial does not have definite parity or is not real."""
-    if any(bd.abs(bd.im(ck)) > bd.machine_threshold() for ck in c):
+    if isinstance(T, list):
+        T = ChebyshevTExpansion(T)
+
+    if not T.is_real():
         raise ValueError("Only real polynomials are supported.")
 
-    P = chebyshev_to_laurent(c)
-    return xqsp_solve_laurent(P)
+    xqsp = xqsp_solve_laurent(T.to_laurent())
+    return ChebyshevQSPPhaseFactors(xqsp.phi)

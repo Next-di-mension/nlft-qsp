@@ -6,6 +6,9 @@ import mpmath as mp
 import numerics as bd
 from poly import Polynomial
 
+def random_real(c):
+    return bd.make_float(c*mp.rand())
+
 def random_complex(c):
     return bd.make_complex(c*mp.rand() + c*1j*mp.rand())
 

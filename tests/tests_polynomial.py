@@ -3,8 +3,9 @@ import unittest
 
 import nlft_qsp.numerics as bd
 
-from nlft_qsp.rand import random_sequence
+from nlft_qsp.rand import random_real, random_sequence
 from nlft_qsp.nlft import NonLinearFourierSequence, Polynomial
+from poly import ChebyshevTExpansion
 
 
 class PolynomialTestCase(unittest.TestCase):
@@ -155,7 +156,28 @@ class PolynomialTestCase(unittest.TestCase):
             else:
                 self.assertEqual(q[k], 0)
 
-    # left uncovered: sup_norm()
+    def test_chebyshev_expansion_to_laurent(self):
+        T = ChebyshevTExpansion(random_sequence(10, 10))
+        P = T.to_laurent()
+
+        for k in range(32):
+            theta = (k * bd.pi()) / 32
+            z = bd.exp(1j * theta)
+            x = bd.cos(theta)
+
+            self.assertAlmostEqual(P(z), T(x), delta=bd.machine_threshold())
+
+    def test_laurent_to_chebyshev_expansion(self):
+        seq = random_sequence(10, 10)
+        P = Polynomial(list(reversed(seq)) + seq[1:], support_start=-9)
+        T = ChebyshevTExpansion(P)
+
+        for k in range(32):
+            theta = (k * bd.pi()) / 32
+            z = bd.exp(1j * theta)
+            x = bd.cos(theta)
+
+            self.assertAlmostEqual(P(z), T(x), delta=bd.machine_threshold())
 
 
 class NLFTTestCase(unittest.TestCase):
