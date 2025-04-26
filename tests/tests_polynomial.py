@@ -3,9 +3,9 @@ import unittest
 
 import nlft_qsp.numerics as bd
 
-from nlft_qsp.poly import ChebyshevTExpansion
+from nlft_qsp.poly import ChebyshevTExpansion, Polynomial
 from nlft_qsp.rand import random_sequence
-from nlft_qsp.nlft import NonLinearFourierSequence, Polynomial
+from nlft_qsp.nlft import NonLinearFourierSequence
 
 
 class PolynomialTestCase(unittest.TestCase):

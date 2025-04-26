@@ -7,7 +7,7 @@ import nlft_qsp.numerics as bd
 
 from nlft_qsp.poly import ChebyshevTExpansion
 from nlft_qsp.nlft import NonLinearFourierSequence
-from nlft_qsp.qsp import ChebyshevQSPPhaseFactors, XQSPPhaseFactors, YQSPPhaseFactors, gqsp_solve, nlfs_to_phase_factors, chebqsp_solve, xqsp_solve
+from nlft_qsp.qsp import ChebyshevQSPPhaseFactors, GQSPPhaseFactors, XQSPPhaseFactors, YQSPPhaseFactors, gqsp_solve, chebqsp_solve, xqsp_solve
 from nlft_qsp.rand import random_polynomial, random_real_polynomial, random_sequence
 
 
@@ -50,7 +50,7 @@ class QSPTestCase(unittest.TestCase):
     def test_gqsp_phase_factors(self):
         nlft = NonLinearFourierSequence(random_sequence(100, 16))
 
-        pf = nlfs_to_phase_factors(nlft)
+        pf = GQSPPhaseFactors.from_nlfs(nlft)
         nlft2 = pf.to_nlfs()
 
         self.assertAlmostEqual(pf.phase_offset(), 0, delta=bd.machine_threshold())
@@ -60,7 +60,7 @@ class QSPTestCase(unittest.TestCase):
     @bd.workdps(30)
     def test_qsp_polynomial_gen(self):
         nlft = NonLinearFourierSequence(random_sequence(1000000, 16))
-        qsp = nlfs_to_phase_factors(nlft)
+        qsp = GQSPPhaseFactors.from_nlfs(nlft)
 
         a, b = nlft.transform()
         P, Q = qsp.polynomials()
@@ -68,7 +68,7 @@ class QSPTestCase(unittest.TestCase):
         self.assertAlmostEqual((a.shift(15) - P).l2_norm(), 0, delta=bd.machine_threshold())
         self.assertAlmostEqual((b - Q).l2_norm(), 0, delta=bd.machine_threshold())
 
-        qsp2 = nlfs_to_phase_factors(nlft, alpha=1)
+        qsp2 = GQSPPhaseFactors.from_nlfs(nlft, alpha=1)
         P2, Q2 = qsp2.polynomials()
         self.assertAlmostEqual((P2 - P * bd.exp(1j)).l2_norm(), 0, delta=bd.machine_threshold())
         self.assertAlmostEqual((Q2 - Q).l2_norm(), 0, delta=bd.machine_threshold())
@@ -76,7 +76,7 @@ class QSPTestCase(unittest.TestCase):
     @bd.workdps(30)
     def test_qsp_polynomial_laurent_analytic(self):
         nlft = NonLinearFourierSequence(random_sequence(100, 17))
-        qsp = nlfs_to_phase_factors(nlft)
+        qsp = GQSPPhaseFactors.from_nlfs(nlft)
 
         P, Q = qsp.polynomials()
         Pl, Ql = qsp.polynomials(mode='laurent')
