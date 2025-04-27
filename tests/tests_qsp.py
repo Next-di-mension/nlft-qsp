@@ -7,7 +7,7 @@ import nlft_qsp.numerics as bd
 
 from nlft_qsp.poly import ChebyshevTExpansion
 from nlft_qsp.nlft import NonLinearFourierSequence
-from nlft_qsp.qsp import ChebyshevQSPPhaseFactors, GQSPPhaseFactors, XQSPPhaseFactors, YQSPPhaseFactors, gqsp_solve, chebqsp_solve, xqsp_solve, yqsp_solve
+from nlft_qsp.qsp import ChebyshevQSPPhaseFactors, GQSPPhaseFactors, QSVTPhaseFactors, XQSPPhaseFactors, YQSPPhaseFactors, gqsp_solve, chebqsp_solve, xqsp_solve, yqsp_solve
 from nlft_qsp.rand import random_polynomial, random_real_polynomial, random_real_sequence, random_sequence
 
 
@@ -65,6 +65,24 @@ class QSPTestCase(unittest.TestCase):
 
         for k, c in enumerate([-0.418258-0.112072j, 0, 0, 0, 0.418258+0.112072j]):
             self.assertAlmostEqual(Q[k - 2], c, delta=10e-7)
+
+    @bd.workdps(30)
+    def test_qsvt_phase_factors(self):
+        seq = random_real_sequence(2*bd.pi(), 12)
+        qsp = ChebyshevQSPPhaseFactors(seq)
+        
+        d = qsp.degree()
+        seq[0] += (2*d - 1) * bd.pi()/4
+        for k in range(1, d):
+            seq[k] -= bd.pi()/2
+        seq[d] -= bd.pi()/4
+        qsvt = QSVTPhaseFactors(seq)
+
+        P1, Q1 = qsp.polynomials(mode='laurent')
+        P2, Q2 = qsvt.polynomials(mode='laurent')
+
+        self.assertAlmostEqual((P1 - P2).l2_norm(), 0, delta=bd.machine_threshold())
+        self.assertAlmostEqual((Q1 - Q2).l2_norm(), 0, delta=bd.machine_threshold())
 
     @bd.workdps(30)
     def test_gqsp_polynomials(self):

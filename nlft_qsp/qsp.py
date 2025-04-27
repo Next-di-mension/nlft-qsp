@@ -397,6 +397,28 @@ class ChebyshevQSPPhaseFactors(XQSPPhaseFactors):
     
     def iZ(self):
         return super.iX() # applying iZ is equivalent to applying iX, by the Hadamard conjugation
+    
+class QSVTPhaseFactors(ChebyshevQSPPhaseFactors):
+    """Phase factors for a QSVT/Reflection QSP protocol.
+
+    Signal operator: `R(x) = (x, sqrt(1 - x^2))` where `R(x)` is Hermitian with x = (z + z^(-1))/2.
+    
+    Processing operators: `A[k] = exp(I*phi[k]*Z)`.
+
+    Note:
+        This is the ansatz of Corollary 8 arXiv:1806.01838, but the polynomial
+        construction is implemented by implicitly adjusting the phase factors from Chebyshev QSP, see arXiv:2105.02859, (A5)."""
+    def protocol_conjugation(self, P, Q):
+        d = self.degree()
+        return ((P + P.conjugate()) + (Q - Q.conjugate()))*((-1j)**(d+1)/2), \
+               ((P - P.conjugate()) - (Q + Q.conjugate()))*((-1j)**d/2)
+    
+    def processing_operator_conjugation(self, a, b):
+        a *= 1j # R(x) = -I*exp(I*pi*Z/4)*W(x)*exp(I*pi*Z/4)
+        return bd.re(a) + 1j*bd.im(b), 1j*bd.im(a) - bd.re(b)
+
+    def duplicate(self):
+        return QSVTPhaseFactors(self.phi)
 
 
 #### QSP SOLVERS
