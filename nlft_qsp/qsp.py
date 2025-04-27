@@ -187,6 +187,24 @@ class XQSPPhaseFactors(PhaseFactors):
     def to_nlfs(self) -> NonLinearFourierSequence:
         return NonLinearFourierSequence([1j*bd.tan(phik) for phik in self.phi])
     
+    @classmethod
+    def from_nlfs(cls, F: NonLinearFourierSequence) -> PhaseFactors:
+        """Computes the XQSP phase factors for a given imaginary NLFT sequence.
+        If `NLFT(F) = (a, b)`, then the returned phase factors will implement `(z^n a, b)` in the analytic picture.
+    
+        Args:
+            F (NonLinearFourierSequence): The imaginary sequence to be converted to phase factors.
+
+        Raises:
+            ValueError if F is not imaginary.
+    
+        Note:
+            The support start of F is ignored, so the support of b is assumed to start at 0."""
+        if not F.is_imaginary():
+            raise ValueError("The Non-Linear Fourier sequence must be imaginary in order to be turned into a XQSP protocol.")
+
+        return XQSPPhaseFactors([bd.arctan(bd.im(Fk)) for Fk in F.coeffs])
+    
 class YQSPPhaseFactors(PhaseFactors):
     """Phase factors for a Y-constrained QSP protocol.
 
@@ -212,6 +230,24 @@ class YQSPPhaseFactors(PhaseFactors):
     
     def to_nlfs(self) -> NonLinearFourierSequence:
         return NonLinearFourierSequence([bd.tan(phik) for phik in self.phi])
+    
+    @classmethod
+    def from_nlfs(cls, F: NonLinearFourierSequence) -> PhaseFactors:
+        """Computes the YQSP phase factors for a given real NLFT sequence.
+        If `NLFT(F) = (a, b)`, then the returned phase factors will implement `(z^n a, b)` in the analytic picture.
+    
+        Args:
+            F (NonLinearFourierSequence): The real sequence to be converted to phase factors.
+
+        Raises:
+            ValueError if F is not real.
+    
+        Note:
+            The support start of F is ignored, so the support of b is assumed to start at 0."""
+        if not F.is_real():
+            raise ValueError("The Non-Linear Fourier sequence must be real in order to be turned into a YQSP protocol.")
+
+        return YQSPPhaseFactors([bd.arctan(bd.re(Fk)) for Fk in F.coeffs])
 
 class GQSPPhaseFactors(PhaseFactors):
     """Phase factors for a GQSP protocol.
@@ -270,21 +306,31 @@ class GQSPPhaseFactors(PhaseFactors):
         
         Raises:
             ValueError: If the phase factors do not lie in the X-constrained subalgebra."""
-        
-        if any(bd.abs(theta_k) > bd.machine_threshold() for theta_k in self.theta) or \
-            bd.abs(self.lbd) > bd.machine_threshold():
+        F = self.to_nlfs()
+        if not F.is_imaginary():
             raise ValueError("The phase factors are not reducible to X-constrained QSP.")
         
-        return XQSPPhaseFactors(self.phi)
+        return XQSPPhaseFactors.from_nlfs(F)
+    
+    def to_yqsp(self):
+        """Converts the QSP phase factors into Y-constrained QSP phase factors.
+        
+        Raises:
+            ValueError: If the phase factors do not lie in the Y-constrained subalgebra."""
+        F = self.to_nlfs()
+        if not F.is_real():
+            raise ValueError("The phase factors are not reducible to Y-constrained QSP.")
+        
+        return YQSPPhaseFactors.from_nlfs(F)
     
     def to_nlfs(self) -> NonLinearFourierSequence:
         n = self.degree()
         alpha = self.phase_offset() # phase of the leading coefficient of P
 
-        psi = [bd.make_float(0)] * n # prefactors
+        psi = [bd.make_float(0)] * (n+1) # prefactors
 
         psi[0] = self.lbd - alpha/2
-        for k in range(n-1):
+        for k in range(n):
             psi[k+1] = self.theta[k] + psi[k]
 
         phi = self.phi
@@ -293,7 +339,7 @@ class GQSPPhaseFactors(PhaseFactors):
     @classmethod
     def from_nlfs(cls, F: NonLinearFourierSequence, alpha: generic_real = 0) -> PhaseFactors:
         """Computes the GQSP phase factors for a given NLFT sequence.
-        If `NLFT(F) = (a, b)`, then the returned phase factors will implement `(exp(i alpha) z^n a, b)`.
+        If `NLFT(F) = (a, b)`, then the returned phase factors will implement `(exp(i alpha) z^n a, b)` in the analytic picture.
     
         Args:
             F (NonLinearFourierSequence): The sequence to be converted to phase factors.
@@ -340,6 +386,10 @@ class ChebyshevQSPPhaseFactors(XQSPPhaseFactors):
 
 #### QSP SOLVERS
 
+def __riemann_hilbert_weiss(P: Polynomial) -> NonLinearFourierSequence:
+    _, c = weiss.ratio(P)
+    return riemann_hilbert.inlft_hc(P, c) # NLFT(F) = (Q, P)
+
 def gqsp_solve(P: Polynomial, mode='qsp') -> GQSPPhaseFactors:
     r"""Returns the set of phase factors for a Generalized QSP protocol producing the given polynomial.
     A complementary Q will be computed with Weiss' algorithm.
@@ -352,26 +402,21 @@ def gqsp_solve(P: Polynomial, mode='qsp') -> GQSPPhaseFactors:
         The time required by the algorithm to compute the phase factors will scale with :math:`1/\eta`.
         
         The support_start of P will be ignored."""
-    
     if 1 - P.sup_norm(4*P.effective_degree()) < bd.machine_threshold():
         raise ValueError("The given polynomial cannot be too close to or larger than one on the unit circle.")
     
     match mode:
         case "qsp":
-            P = -1j * Polynomial(P.coeffs, 0)
-            # We want to produce (Q, -i P), and then multiply the QSP protocol by iX on the right.
+            P = -1j * Polynomial(P.coeffs, 0) # (Q, -iP) -> (P, iQ)
         case "nlft":
             P = Polynomial(P.coeffs, 0)
         case _:
             raise ValueError("The given mode does not exist. Only modes available are 'qsp', 'nlft'.")
     
-    _, c = weiss.ratio(P)
-
-    F = riemann_hilbert.inlft_hc(P, c) # NLFT(F) = (Q, P)
+    F = __riemann_hilbert_weiss(P) # NLFT(F) = (Q, P)
 
     if mode != "qsp":
         return GQSPPhaseFactors.from_nlfs(F)
-    
     return GQSPPhaseFactors.from_nlfs(F).iX()
 
 def xqsp_solve(P: Polynomial, mode='qsp') -> XQSPPhaseFactors:
@@ -389,7 +434,22 @@ def xqsp_solve(P: Polynomial, mode='qsp') -> XQSPPhaseFactors:
         The time required by the algorithm to compute the phase factors will scale with :math:`1/\eta`.
         
         The support_start of P will be ignored. This is a solver for analytic QSP. In order to obtain phase factors for Laurent XQSP, use `xqsp_solve_laurent`."""
-    return gqsp_solve(P, mode=mode).to_xqsp()
+    if 1 - P.sup_norm(4*P.effective_degree()) < bd.machine_threshold():
+        raise ValueError("The given polynomial cannot be too close to or larger than one on the unit circle.")
+    
+    match mode:
+        case "qsp":
+            P = -1j * Polynomial(P.coeffs, 0) # (Q, -iP) -> (P, iQ)
+        case "nlft":
+            P = Polynomial(P.coeffs, 0)
+        case _:
+            raise ValueError("The given mode does not exist. Only modes available are 'qsp', 'nlft'.")
+    
+    F = __riemann_hilbert_weiss(P) # NLFT(F) = (Q, P)
+
+    if mode != "qsp":
+        return XQSPPhaseFactors.from_nlfs(F)
+    return XQSPPhaseFactors.from_nlfs(F).iX()
 
 def xqsp_solve_laurent(P: Polynomial, mode='qsp') -> XQSPPhaseFactors:
     r"""Returns the set of phase factors for a X-constrained QSP protocol producing the given definite-parity polynomial. A complementary Q will be computed with Weiss' algorithm.
@@ -409,6 +469,57 @@ def xqsp_solve_laurent(P: Polynomial, mode='qsp') -> XQSPPhaseFactors:
         raise ValueError("Laurent polynomial is not of definite parity.")
     
     return xqsp_solve(laurent_to_analytic(P), mode=mode)
+
+def yqsp_solve(P: Polynomial, mode='qsp') -> YQSPPhaseFactors:
+    r"""Returns the set of phase factors for a Y-constrained QSP protocol producing the given polynomial.
+    A complementary Q will be computed with Weiss' algorithm.
+
+    Args:
+        mode (str): Whether the phase factors should produce (P, Q) (`'qsp'`), or (Q, P) (`'nlft'`).
+
+    Raises:
+        ValueError: If P does not lie in the Y-constrained subalgebra.
+    
+    Note:
+        The sup norm of P should be bounded by :math:`1 - \eta < 1`.
+        The time required by the algorithm to compute the phase factors will scale with :math:`1/\eta`.
+        
+        The support_start of P will be ignored. This is a solver for analytic QSP. In order to obtain phase factors for Laurent YQSP, use `yqsp_solve_laurent`."""
+    if 1 - P.sup_norm(4*P.effective_degree()) < bd.machine_threshold():
+        raise ValueError("The given polynomial cannot be too close to or larger than one on the unit circle.")
+    
+    match mode:
+        case "qsp":
+            P = -1j * Polynomial(P.coeffs, 0) # (Q, -P) -> (P, Q)
+        case "nlft":
+            P = Polynomial(P.coeffs, 0)
+        case _:
+            raise ValueError("The given mode does not exist. Only modes available are 'qsp', 'nlft'.")
+    
+    F = __riemann_hilbert_weiss(P) # NLFT(F) = (Q, P)
+
+    if mode != "qsp":
+        return YQSPPhaseFactors.from_nlfs(F)
+    return YQSPPhaseFactors.from_nlfs(F).iY()
+
+def yqsp_solve_laurent(P: Polynomial, mode='qsp') -> YQSPPhaseFactors:
+    r"""Returns the set of phase factors for a Y-constrained QSP protocol producing the given definite-parity polynomial. A complementary Q will be computed with Weiss' algorithm.
+
+    Args:
+        mode (str): Whether the phase factors should produce (P, Q) (`'qsp'`), or (Q, P) (`'nlft'`).
+
+    Raises:
+        ValueError: If P does not lie in the X-constrained subalgebra or P has not definite-parity.
+    
+    Note:
+        The sup norm of P should be bounded by :math:`1 - \eta < 1`.
+        The time required by the algorithm to compute the phase factors will scale with :math:`1/\eta`.
+        
+        The support_start of P will be ignored. In order to obtain phase factors for Laurent YQSP, first convert the polynomial into analytic form."""
+    if not is_definite_parity(P):
+        raise ValueError("Laurent polynomial is not of definite parity.")
+    
+    return yqsp_solve(laurent_to_analytic(P), mode=mode)
 
 def chebqsp_solve(T: list[generic_complex] | ChebyshevTExpansion) -> ChebyshevQSPPhaseFactors:
     """Returns the set of phase factors for a Chebyshev QSP protocol implementing the polynomial `P(x)` (as the real part of the top-left polynomial, see Theorem 9 of arXiv:2105.02859).
