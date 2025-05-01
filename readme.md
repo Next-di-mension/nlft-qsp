@@ -40,14 +40,20 @@ Same as above, but using the Half-Cholesky method.
 
 ### QSP solvers
 
-- `qsp.gqsp_solve(P: Polynomial) -> PhaseFactors`\
+- `qsp.gqsp_solve(P: Polynomial) -> GQSPPhaseFactors`\
 Computes the GQSP phase factors implementing $(P, Q)$, for a complementary $Q$ computed with Weiss' algorithm.
 
-- `qsp.xqsp_solve(P: Polynomial) -> PhaseFactors`\
+- `qsp.xqsp_solve(P: Polynomial) -> XQSPPhaseFactors`\
 Same as above, but for analytic $X$-constrained QSP.
 
-- `qsp.xqsp_solve_laurent(P: Polynomial) -> PhaseFactors`\
+- `qsp.xqsp_solve_laurent(P: Polynomial) -> XQSPPhaseFactors`\
 Same as above, but for Laurent $X$-constrained QSP.
 
-- `qsp.chebqsp_solve(c: list[generic_complex]) -> PhaseFactors`\
-Computes the phase factors for a Chebyshev QSP protocol, given the coefficients of $P(x) = \sum_{k = 0}^n c_k T_k(x)$.
+- `qsp.yqsp_solve(P: Polynomial) -> YQSPPhaseFactors`\
+Same as above, but for analytic $Y$-constrained QSP.
+
+- `qsp.yqsp_solve_laurent(P: Polynomial) -> YQSPPhaseFactors`\
+Same as above, but for Laurent $Y$-constrained QSP.
+
+- `qsp.chebqsp_solve(c: list[generic_complex] | ChebyshevTExpansion) -> ChebyshevQSPPhaseFactors`\
+Computes the phase factors for a Chebyshev QSP protocol (Theorem 9 of [arXiv:2105.02859](https://arxiv.org/abs/2105.02859)), given the coefficients of $P(x) = \sum_{k = 0}^n c_k T_k(x)$.
