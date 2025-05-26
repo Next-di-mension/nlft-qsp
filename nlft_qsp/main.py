@@ -4,7 +4,7 @@ import numerics as bd
 
 from nlft import NonLinearFourierSequence
 
-import riemann_hilbert, weiss
+from solvers import riemann_hilbert, weiss
 
 #set_backend(MPMathBackend(mp.mp)) # default is numpy
 

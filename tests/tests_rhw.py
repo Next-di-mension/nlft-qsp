@@ -5,9 +5,10 @@ import numpy as np
 import scipy as sp
 
 import nlft_qsp.numerics as bd
-
 from nlft_qsp.rand import random_list, random_polynomial
-from nlft_qsp import riemann_hilbert, weiss
+
+from nlft_qsp.solvers import weiss
+from nlft_qsp.solvers import riemann_hilbert
 
 
 class RHWTestCase(unittest.TestCase):

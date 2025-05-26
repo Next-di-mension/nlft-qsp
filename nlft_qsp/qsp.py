@@ -5,7 +5,7 @@ import numerics as bd
 from poly import ChebyshevTExpansion, Polynomial
 from numerics.backend import generic_real, generic_complex
 
-import riemann_hilbert, weiss
+from solvers import riemann_hilbert, weiss
 
 def is_definite_parity(P: Polynomial, n: int = -1) -> bool:
     """Returns whether the polynomial has the parity of n. If n is not defined, then n = index of last coefficient of P."""
