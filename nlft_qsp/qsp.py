@@ -5,7 +5,7 @@ import numerics as bd
 from poly import ChebyshevTExpansion, Polynomial
 from numerics.backend import generic_real, generic_complex
 
-from solvers import riemann_hilbert, weiss
+from solvers import nlfft, weiss
 
 def is_definite_parity(P: Polynomial, n: int = -1) -> bool:
     """Returns whether the polynomial has the parity of n. If n is not defined, then n = index of last coefficient of P."""
@@ -424,8 +424,8 @@ class QSVTPhaseFactors(ChebyshevQSPPhaseFactors):
 #### QSP SOLVERS
 
 def __riemann_hilbert_weiss(P: Polynomial) -> NonLinearFourierSequence:
-    _, c = weiss.ratio(P)
-    return riemann_hilbert.inlft_hc(P, c) # NLFT(F) = (Q, P)
+    Q = weiss.complete(P)
+    return nlfft.inlft(Q, P) # NLFT(F) = (Q, P)
 
 def gqsp_solve(P: Polynomial, mode='qsp') -> GQSPPhaseFactors:
     r"""Returns the set of phase factors for a Generalized QSP protocol producing the given polynomial.

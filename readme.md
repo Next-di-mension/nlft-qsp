@@ -42,7 +42,7 @@ Returns the pre-image of $(a, b)$ with the plain Riemann-Hilbert algorithm, give
 - `solvers.riemann_hilbert.inlft_hc(b: Polynomial, c: Polynomial) -> NonLinearFourierSequence`\
 Same as above, but using the Half-Cholesky method. $\mathcal{O}(n^2)$
 
-- `solvers.inlfft.inlft(a: Polynomial, b: Polynomial) -> NonLinearFourierSequence`
+- `solvers.nlfft.inlft(a: Polynomial, b: Polynomial) -> NonLinearFourierSequence`
 Computes the inverse NLFT of $(a, b)$ using the Inverse Non-Linear Fast Fourier Transform algorithm. $\mathcal{O}(n \log^2 n)$
 
 ### QSP solvers
