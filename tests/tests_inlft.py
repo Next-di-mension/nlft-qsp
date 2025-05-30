@@ -9,6 +9,7 @@ from nlft_qsp.rand import random_list, random_polynomial
 
 from nlft_qsp.solvers import weiss
 from nlft_qsp.solvers import riemann_hilbert
+from nlft_qsp.solvers import nlfft
 
 
 class RHWTestCase(unittest.TestCase):
@@ -67,6 +68,18 @@ class RHWTestCase(unittest.TestCase):
         self.assertAlmostEqual((a - a2).l2_norm(), 0, delta=100 * bd.machine_eps())
         self.assertAlmostEqual((b - b2).l2_norm(), 0, delta=100 * bd.machine_eps())
 
+    @bd.workdps(30)
+    def test_inlft_nlfft(self):
+        b = random_polynomial(1600, eta=0.5)
+        a = weiss.complete(b)
+
+        self.assertAlmostEqual((a * a.conjugate() + b * b.conjugate() - 1).l2_norm(), 0, delta=bd.machine_threshold())
+
+        nlft = nlfft.inlft(a, b)
+        a2, b2 = nlft.transform()
+
+        self.assertAlmostEqual((a - a2).l2_norm(), 0, delta=bd.machine_threshold())
+        self.assertAlmostEqual((b - b2).l2_norm(), 0, delta=bd.machine_threshold())
 
     def test_laurent_approx_md(self):
         N = 16

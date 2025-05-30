@@ -193,6 +193,16 @@ class Polynomial(ComplexL0Sequence):
         """
         conj_coeffs = [bd.conj(x) for x in reversed(self.coeffs)]
         return Polynomial(conj_coeffs, -(self.support_start + len(self.coeffs) - 1))
+    
+    def sharp(self):
+        r"""Same as `conjugate()`, but the support_start is left unchanged.
+
+        Returns:
+            Polynomial: The sharp-conjugate polynomial.
+        """
+        p = self.conjugate()
+        p.support_start += self.effective_degree() + 1
+        return p
 
     def schwarz_transform(self):
         r"""Returns the anti-analytic polynomial whose real part gives the current polynomial.
