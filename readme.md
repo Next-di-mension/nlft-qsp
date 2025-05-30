@@ -12,6 +12,10 @@ quantum signal processing for arbitrary Szegö functions*, [arXiv:2407.05634](ht
 
 - Lorenzo Laneve. *Generalized Quantum Signal Processing and Non-Linear Fourier Transform are equivalent*, [arXiv:2503.03026](https://arxiv.org/abs/2503.03026).
 
+- Hongkang Ni, Rahul Sarkar, Lexing Ying, Lin Lin. *Inverse nonlinear fast Fourier transform on SU(2) with applications to quantum signal processing*, [arXiv:2505.12615](https://arxiv.org/abs/2505.12615).
+
+
+
 ## How to use the package
 
 There are three main classes in this package.
@@ -24,19 +28,22 @@ There are three main classes in this package.
 
 Here we list the main functions of this package.
 
-### Riemann-Hilbert-Weiss algorithm
+### Inverse NLFT solvers
 
-- `weiss.complete(b: Polynomial) -> Polynomial` \
+- `solvers.weiss.complete(b: Polynomial) -> Polynomial` \
 Returns the unique outer complementary polynomial to $b$ such that $(a, b) \in \mathbf{H}$, the image of the NLFT.
 
-- `weiss.ratio(b: Polynomial) -> Polynomial, Polynomial`\
+- `solvers.weiss.ratio(b: Polynomial) -> Polynomial, Polynomial`\
 Same as the above, but it returns $a$, along with a polynomial $c$ which is the Fourier approximation of $b/a$.
 
-- `riemann_hilbert.inlft(b: Polynomial, c: Polynomial) -> NonLinearFourierSequence`\
-Returns the pre-image of $(a, b)$ with the plain Riemann-Hilbert algorithm, given $b$ and the Fourier approximation $c$ to $b/a$.
+- `solvers.riemann_hilbert.inlft(b: Polynomial, c: Polynomial) -> NonLinearFourierSequence`\
+Returns the pre-image of $(a, b)$ with the plain Riemann-Hilbert algorithm, given $b$ and the Fourier approximation $c$ to $b/a$. $\mathcal{O}(n^4)$
 
-- `riemann_hilbert.inlft_hc(b: Polynomial, c: Polynomial) -> NonLinearFourierSequence`\
-Same as above, but using the Half-Cholesky method.
+- `solvers.riemann_hilbert.inlft_hc(b: Polynomial, c: Polynomial) -> NonLinearFourierSequence`\
+Same as above, but using the Half-Cholesky method. $\mathcal{O}(n^2)$
+
+- `solvers.inlfft.inlft(a: Polynomial, b: Polynomial) -> NonLinearFourierSequence`
+Computes the inverse NLFT of $(a, b)$ using the Inverse Non-Linear Fast Fourier Transform algorithm. $\mathcal{O}(n \log^2 n)$
 
 ### QSP solvers
 
