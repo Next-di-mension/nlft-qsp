@@ -1,4 +1,6 @@
 
+from math import ceil
+
 import numerics as bd
 
 from poly import Polynomial
@@ -13,7 +15,6 @@ class WeissConvergenceError(Exception):
 
     def __init__(self, *args):
         super().__init__(*args)
-
 
 def laurent_approximation(points: list) -> Polynomial:
     r"""Returns a Laurent polynomial passing through the given points.
@@ -34,21 +35,28 @@ def laurent_approximation(points: list) -> Polynomial:
 
     return Polynomial(coeffs, support_start=-N//2)
 
-def weiss_internal(b: Polynomial, compute_ratio=False, verbose=False):
+def weiss_internal(b: Polynomial, eps:float=-1, compute_ratio=False, verbose=False):
     """Internal function for Weiss' algorithm. The user should call `weiss.complete`, or `weiss.ratio`.
 
     Args:
         b (Polynomial): The starting polynomial to complete.
+        eps (float): The desired tolerance. If not specified, it will be set to working precision.
         compute_ratio (bool, optional): If True, then also a Polynomial approximating :mode:`b/a` will be returned. Defaults to False.
         verbose (bool, optional): verbosity during the procedure. Defaults to False.
 
     Returns:
         Polynomial: A polynomial :math:`a(z)` satisfying :math:`|a|^2 + |b|^2 = 1` on the unit circle (up to working precision). If `compute_ratio=True`, a second polynomial :math:`c(z)` that approximates :math:`b/a` is returned.
     """
-    N = 4*next_power_of_two(b.effective_degree()) # Exponential search on N
+    d = b.effective_degree()
+    if eps < 0:
+        eps = 100 * bd.machine_eps()
+
+    eta = 1 - b.sup_norm(4*d)
+
+    N = next_power_of_two(int(d/eta))//2 # Exponential search on N
     threshold = 1
     attempts = 0
-    while threshold > 100 * bd.machine_eps():
+    while threshold > eps:
         N *= 2
 
         b_points = b.eval_at_roots_of_unity(N)
@@ -79,29 +87,31 @@ def weiss_internal(b: Polynomial, compute_ratio=False, verbose=False):
     else:
         return a
 
-def complete(b: Polynomial, verbose=False):
+def complete(b: Polynomial, eps:float=-1, verbose=False):
     """Uses Weiss' algorithm to find a complementary polynomial to the given one. The polynomial will also be the unique outer, positive-mean polynomial with this property, according to arXiv:2407.05634.
 
     Args:
         b (Polynomial): The polynomial to complete.
+        eps (float): The desired tolerance. If not specified, it will be set to working precision.
         verbose (bool, optional): verbosity during the procedure. Defaults to False.
 
     Returns:
-        Polynomial: A polynomial :math:`a(z)` satisfying :math:`|a|^2 + |b|^2 = 1` on the unit circle (up to working precision).
+        Polynomial: A polynomial :math:`a(z)` satisfying :math:`|a|^2 + |b|^2 = 1` on the unit circle (up to eps).
     """
-    return weiss_internal(b, verbose=verbose)
+    return weiss_internal(b, eps, verbose=verbose)
 
-def ratio(b: Polynomial, verbose=False):
+def ratio(b: Polynomial, eps:float=-1, verbose=False):
     """Uses Weiss' algorithm to compute :math:`b/a`, where :math:`a` is the unique outer, positive-mean polynomial such that `|a|^2 + |b|^2 = 1`, up to working precision.
 
     Args:
         b (Polynomial): The polynomial to complete.
+        eps (float): The desired tolerance. If not specified, it will be set to working precision.
         verbose (bool, optional): verbosity during the procedure. Defaults to False.
 
     Returns:
         Polynomial: A polynomial :math:`a(z)` satisfying :math:`|a|^2 + |b|^2 = 1` on the unit circle (up to working precision), and a polynomial :math:`c` that approximates :math:`b/a`.
     """
-    return weiss_internal(b, compute_ratio=True, verbose=verbose)
+    return weiss_internal(b, eps, compute_ratio=True, verbose=verbose)
 
 
 
